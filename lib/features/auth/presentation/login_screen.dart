@@ -1,37 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/app_routes.dart';
+import '../provider/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final authNotifier = ref.read(authProvider.notifier);
+    final _formKey = GlobalKey<FormState>();
+    final TextEditingController _emailController = TextEditingController();
+    final TextEditingController _passwordController = TextEditingController();
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement login logic
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Logging in...')));
+    void _login() async {
+      if (_formKey.currentState!.validate()) {
+        await authNotifier.login(
+          _emailController.text,
+          _passwordController.text,
+        );
+        if (ref.read(authProvider).user != null && context.mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
+      }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: Padding(
@@ -41,6 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (authState.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    authState.error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -66,8 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.background,
                   ),
-                  onPressed: _login,
-                  child: const Text('Login'),
+                  onPressed: authState.loading ? null : _login,
+                  child: authState.loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Login'),
                 ),
               ),
               const SizedBox(height: 16),

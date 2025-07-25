@@ -1,39 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/app_routes.dart';
+import '../provider/auth_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final authNotifier = ref.read(authProvider.notifier);
+    final _formKey = GlobalKey<FormState>();
+    final TextEditingController _nameController = TextEditingController();
+    final TextEditingController _emailController = TextEditingController();
+    final TextEditingController _passwordController = TextEditingController();
 
-class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _register() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement register logic
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Registering...')));
+    void _register() async {
+      if (_formKey.currentState!.validate()) {
+        await authNotifier.register(
+          _nameController.text,
+          _emailController.text,
+          _passwordController.text,
+        );
+        if (ref.read(authProvider).user != null && context.mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
+      }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Register')),
       body: Padding(
@@ -43,6 +38,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (authState.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    authState.error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Name'),
@@ -75,8 +78,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.background,
                   ),
-                  onPressed: _register,
-                  child: const Text('Register'),
+                  onPressed: authState.loading ? null : _register,
+                  child: authState.loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Register'),
                 ),
               ),
               const SizedBox(height: 16),

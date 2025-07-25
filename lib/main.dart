@@ -3,22 +3,31 @@ import 'core/theme/app_theme.dart';
 import 'router.dart';
 import 'core/constants/app_routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'features/auth/provider/auth_provider.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    if (authState.loading) {
+      return const MaterialApp(
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
+    final initialRoute = authState.user == null
+        ? AppRoutes.login
+        : AppRoutes.home;
     return MaterialApp(
       title: 'Flutter Demo',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      initialRoute: AppRoutes.splash,
+      initialRoute: initialRoute,
       onGenerateRoute: AppRouter.generateRoute,
     );
   }
