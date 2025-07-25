@@ -14,11 +14,17 @@ import 'features/orders/presentation/admin_orders_dashboard_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    print('Navigating to: \n${settings.name}');
+    if (settings.name == null) {
+      return MaterialPageRoute(
+        builder: (_) => const PlaceholderWidget('Null Route Name'),
+      );
+    }
     switch (settings.name) {
       case AppRoutes.splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case AppRoutes.onboarding:
-        return MaterialPageRoute(builder: (_) => const OnboardingScreen());
+        return MaterialPageRoute(builder: (_) =>  OnboardingScreen());
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case AppRoutes.register:
@@ -26,6 +32,12 @@ class AppRouter {
       case AppRoutes.home:
         return MaterialPageRoute(builder: (_) => const ProductListScreen());
       case AppRoutes.productDetail:
+        final args = settings.arguments;
+        if (args == null) {
+          return MaterialPageRoute(
+            builder: (_) => const PlaceholderWidget('No product provided'),
+          );
+        }
         return MaterialPageRoute(
           builder: (_) => const PlaceholderWidget('Product Detail'),
         );
@@ -54,10 +66,22 @@ class AppRouter {
           builder: (_) => const AdminOrdersDashboardScreen(),
         );
       case AppRoutes.adminProductEdit:
+        final args = settings.arguments;
+        if (args == null) {
+          return MaterialPageRoute(
+            builder: (_) => const PlaceholderWidget('No product to edit'),
+          );
+        }
         return MaterialPageRoute(
           builder: (_) => const PlaceholderWidget('Admin Product Edit'),
         );
       case AppRoutes.adminOrderDetail:
+        final args = settings.arguments;
+        if (args == null) {
+          return MaterialPageRoute(
+            builder: (_) => const PlaceholderWidget('No order to show'),
+          );
+        }
         return MaterialPageRoute(
           builder: (_) => const PlaceholderWidget('Admin Order Detail'),
         );

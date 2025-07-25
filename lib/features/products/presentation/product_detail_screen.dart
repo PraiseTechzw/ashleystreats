@@ -6,23 +6,29 @@ import '../../../core/constants/colors.dart';
 import 'package:collection/collection.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
-  final String name;
-  final double price;
-  final String description;
-  final IconData image;
+  final String? name;
+  final double? price;
+  final String? description;
+  final IconData? image;
 
   const ProductDetailScreen({
     Key? key,
-    required this.name,
-    required this.price,
-    required this.description,
-    required this.image,
+    this.name,
+    this.price,
+    this.description,
+    this.image,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (name == null || price == null || description == null || image == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Product Detail')),
+        body: const Center(child: Text('No product provided.')),
+      );
+    }
     return Scaffold(
-      appBar: AppBar(title: Text(name), backgroundColor: AppColors.primary),
+      appBar: AppBar(title: Text(name!), backgroundColor: AppColors.primary),
       backgroundColor: AppColors.background,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -32,7 +38,7 @@ class ProductDetailScreen extends ConsumerWidget {
             Icon(image, size: 100, color: AppColors.primary),
             const SizedBox(height: 24),
             Text(
-              name,
+              name!,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -50,7 +56,7 @@ class ProductDetailScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              description,
+              description!,
               style: TextStyle(fontSize: 18, color: AppColors.secondary),
               textAlign: TextAlign.center,
             ),
@@ -81,13 +87,11 @@ class ProductDetailScreen extends ConsumerWidget {
                         .read(cartProvider.notifier)
                         .addToCart(
                           CartItemModel.full(
-                            productId:
-                                name, // Use name as placeholder for productId
-                            name: name,
-                            price: price,
+                            productId: name!,
+                            name: name!,
+                            price: price!,
                             quantity: 1,
-                            image: image.codePoint
-                                .toString(), // Store icon codePoint as string
+                            image: image!.codePoint.toString(),
                           ),
                         );
                   }

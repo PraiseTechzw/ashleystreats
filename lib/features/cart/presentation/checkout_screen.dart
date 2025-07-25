@@ -1,3 +1,4 @@
+import 'package:ashleystreats/features/orders/data/order_item_embedded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../provider/cart_provider.dart';
@@ -38,7 +39,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   void _submit() async {
     final cartItems = ref.read(cartProvider);
-    if (_formKey.currentState!.validate() &&
+    if (_formKey.currentState != null &&
+        _formKey.currentState!.validate() &&
         _deliveryTime != null &&
         cartItems.isNotEmpty) {
       final orderItems = cartItems
@@ -61,7 +63,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         total: total,
         address: _addressController.text,
         phone: _phoneController.text,
-        deliveryTime: _deliveryTime!.format(context),
+        deliveryTime: _deliveryTime != null
+            ? _deliveryTime!.format(context)
+            : '',
         status: 'Pending',
         createdAt: DateTime.now(),
       );
@@ -139,7 +143,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           child: Text(
                             _deliveryTime == null
                                 ? 'No delivery time selected'
-                                : 'Preferred Time: ${_deliveryTime!.format(context)}',
+                                : 'Preferred Time: ${_deliveryTime != null ? _deliveryTime!.format(context) : ''}',
                             style: TextStyle(color: AppColors.button),
                           ),
                         ),

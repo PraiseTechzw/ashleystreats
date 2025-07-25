@@ -3,6 +3,10 @@ import '../../../core/constants/colors.dart';
 import '../../../services/local_db/isar_service.dart';
 import '../data/product_model.dart';
 import 'product_detail_screen.dart';
+import '../../../services/appwrite/appwrite_service.dart';
+import '../../../features/auth/provider/auth_provider.dart';
+import 'admin_product_list_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -22,109 +26,141 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cupcakes'),
-        backgroundColor: AppColors.primary,
-      ),
-      backgroundColor: AppColors.background,
-      body: FutureBuilder<List<ProductModel>>(
-        future: _productsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final products = snapshot.data ?? [];
-          if (products.isEmpty) {
-            return Center(
-              child: Text(
-                'No cupcakes available! 🧁',
-                style: TextStyle(fontSize: 20, color: AppColors.secondary),
-              ),
-            );
-          }
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              itemCount: products.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.8,
-              ),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return Card(
-                  color: AppColors.card,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailScreen(
-                            name: product.name,
-                            price: product.price,
-                            description: product.description,
-                            image:
-                                Icons.cake, // For now, always use cupcake icon
+    print('Building ProductListScreen');
+    return Consumer(
+      builder: (context, ref, _) {
+        final role = ref.watch(authProvider).role;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Cupcakes'),
+            backgroundColor: AppColors.primary,
+          ),
+          backgroundColor: AppColors.background,
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await AppwriteService().syncProductsWithIsar();
+              setState(() {
+                _productsFuture = IsarService().getProducts();
+              });
+            },
+            child: FutureBuilder<List<ProductModel>>(
+              future: _productsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final products = snapshot.data ?? [];
+                if (products.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No cupcakes available! 🧁',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.builder(
+                    itemCount: products.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 0.8,
+                        ),
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return Card(
+                        color: AppColors.card,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailScreen(
+                                  name: product.name,
+                                  price: product.price,
+                                  description: product.description,
+                                  image: Icons
+                                      .cake, // For now, always use cupcake icon
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                product.image.isNotEmpty
+                                    ? Image.network(
+                                        product.image,
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          Icons.cake,
+                                          color: AppColors.primary,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.cake,
+                                        size: 48,
+                                        color: AppColors.primary,
+                                      ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  product.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: AppColors.secondary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '₦${product.price.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.button,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
                     },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          product.image.isNotEmpty
-                              ? Image.network(
-                                  product.image,
-                                  width: 48,
-                                  height: 48,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
-                                    Icons.cake,
-                                    color: AppColors.primary,
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.cake,
-                                  size: 48,
-                                  color: AppColors.primary,
-                                ),
-                          const SizedBox(height: 16),
-                          Text(
-                            product.name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: AppColors.secondary,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '₦${product.price.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.button,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 );
               },
             ),
-          );
-        },
-      ),
+          ),
+          floatingActionButton: role == 'admin'
+              ? FloatingActionButton(
+                  backgroundColor: AppColors.primary,
+                  child: const Icon(Icons.admin_panel_settings),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminProductListScreen(),
+                      ),
+                    );
+                  },
+                )
+              : null,
+        );
+      },
     );
   }
 }

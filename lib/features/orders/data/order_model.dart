@@ -1,24 +1,6 @@
 import 'package:isar/isar.dart';
+import 'order_item_embedded.dart';
 part 'order_model.g.dart';
-
-@embedded
-class OrderItemEmbedded {
-  late String productId;
-  late String name;
-  late double price;
-  late int quantity;
-  late String image;
-
-  OrderItemEmbedded();
-
-  OrderItemEmbedded.full({
-    required this.productId,
-    required this.name,
-    required this.price,
-    required this.quantity,
-    required this.image,
-  });
-}
 
 @collection
 class OrderModel {

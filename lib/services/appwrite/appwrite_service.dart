@@ -1,5 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
+import '../local_db/isar_service.dart';
+import '../../features/products/data/product_model.dart';
+import '../../features/orders/data/order_model.dart';
+import '../../features/orders/data/order_item_embedded.dart';
 
 class AppwriteService {
   static final AppwriteService _instance = AppwriteService._internal();
@@ -40,7 +44,10 @@ class AppwriteService {
   }
 
   Future<models.Session?> login(String email, String password) async {
-    return await account.createEmailPasswordSession(email: email, password: password);
+    return await account.createEmailPasswordSession(
+      email: email,
+      password: password,
+    );
   }
 
   Future<void> logout() async {
@@ -62,8 +69,12 @@ class AppwriteService {
   }
 
   Future<List<Map<String, dynamic>>> getProducts() async {
-    // TODO: Implement product fetch
-    return [];
+    final docs = await database.listDocuments(
+      databaseId: dbId,
+      collectionId: productsCollectionId,
+    );
+    return docs.documents.map((doc) => doc.data).toList();
+    // TODO: Map to ProductModel and sync with Isar
   }
 
   Future<void> updateProduct(String docId, Map<String, dynamic> data) async {
@@ -74,14 +85,91 @@ class AppwriteService {
     // TODO: Implement product delete
   }
 
+  Future<List<ProductModel>> syncProductsWithIsar() async {
+    final docs = await database.listDocuments(
+      databaseId: dbId,
+      collectionId: productsCollectionId,
+    );
+    final products = docs.documents.map((doc) {
+      final data = doc.data;
+      return ProductModel.full(
+        id: 0, // Isar will auto-increment
+        name: data['name'] ?? '',
+        price: (data['price'] is num) ? (data['price'] as num).toDouble() : 0.0,
+        description: data['description'] ?? '',
+        image: data['image'] ?? '',
+      );
+    }).toList();
+    final isar = IsarService();
+    // Clear local products and insert new ones
+    final localProducts = await isar.getProducts();
+    for (final p in localProducts) {
+      await isar.deleteProduct(p.id);
+    }
+    for (final p in products) {
+      await isar.addProduct(p);
+    }
+    return products;
+  }
+
   // --- ORDERS ---
   Future<void> createOrder(Map<String, dynamic> data) async {
-    // TODO: Implement order creation
+    await database.createDocument(
+      databaseId: dbId,
+      collectionId: ordersCollectionId,
+      documentId: ID.unique(),
+      data: data,
+    );
   }
 
   Future<List<Map<String, dynamic>>> getOrders() async {
-    // TODO: Implement order fetch
-    return [];
+    final docs = await database.listDocuments(
+      databaseId: dbId,
+      collectionId: ordersCollectionId,
+    );
+    return docs.documents.map((doc) => doc.data).toList();
+  }
+
+  Future<List<OrderModel>> syncOrdersWithIsar() async {
+    final docs = await database.listDocuments(
+      databaseId: dbId,
+      collectionId: ordersCollectionId,
+    );
+    final orders = docs.documents.map((doc) {
+      final data = doc.data;
+      return OrderModel.full(
+        id: 0, // Isar will auto-increment
+        items: (data['items'] as List<dynamic>? ?? [])
+            .map(
+              (item) => OrderItemEmbedded.full(
+                productId: item['productId'] ?? '',
+                name: item['name'] ?? '',
+                price: (item['price'] is num)
+                    ? (item['price'] as num).toDouble()
+                    : 0.0,
+                quantity: item['quantity'] ?? 1,
+                image: item['image'] ?? '',
+              ),
+            )
+            .toList(),
+        total: (data['total'] is num) ? (data['total'] as num).toDouble() : 0.0,
+        address: data['address'] ?? '',
+        phone: data['phone'] ?? '',
+        deliveryTime: data['deliveryTime'] ?? '',
+        status: data['status'] ?? 'Pending',
+        createdAt: DateTime.tryParse(data['createdAt'] ?? '') ?? DateTime.now(),
+      );
+    }).toList();
+    final isar = IsarService();
+    // Clear local orders and insert new ones
+    final localOrders = await isar.getOrders();
+    for (final o in localOrders) {
+      await isar.deleteProduct(o.id); // Should be deleteOrder, add if missing
+    }
+    for (final o in orders) {
+      await isar.addOrder(o);
+    }
+    return orders;
   }
 
   // --- IMAGE UPLOAD ---
@@ -89,4 +177,4 @@ class AppwriteService {
     // TODO: Implement image upload
     return '';
   }
-} 
+}

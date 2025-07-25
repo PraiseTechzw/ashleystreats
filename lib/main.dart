@@ -4,6 +4,7 @@ import 'router.dart';
 import 'core/constants/app_routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/auth/provider/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -20,15 +21,29 @@ class MyApp extends ConsumerWidget {
         home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
-    final initialRoute = authState.user == null
-        ? AppRoutes.login
-        : AppRoutes.home;
+    String initialRoute;
+    if (authState.user == null || authState.user?.$id == null) {
+      initialRoute = AppRoutes.login;
+    } else {
+      initialRoute = AppRoutes.home;
+    }
+    print('Building MaterialApp with initialRoute: $initialRoute');
     return MaterialApp(
       title: 'Purple Crumbs',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      initialRoute: initialRoute,
+      initialRoute: AppRoutes.register,
       onGenerateRoute: AppRouter.generateRoute,
+      builder: (context, child) {
+        ErrorWidget.builder = (FlutterErrorDetails details) {
+          return Scaffold(
+            body: Center(
+              child: Text('Error: \n${details.exceptionAsString()}'),
+            ),
+          );
+        };
+        return child!;
+      },
     );
   }
 }
