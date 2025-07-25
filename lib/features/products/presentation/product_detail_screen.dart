@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../cart/provider/cart_provider.dart';
+import '../../cart/data/cart_item_model.dart';
 import '../../../core/constants/colors.dart';
+import 'package:collection/collection.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends ConsumerWidget {
   final String name;
   final double price;
   final String description;
@@ -16,7 +20,7 @@ class ProductDetailScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: Text(name), backgroundColor: AppColors.primary),
       backgroundColor: AppColors.background,
@@ -37,7 +41,7 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              ' 24$price',
+              '\u20a6$price',
               style: TextStyle(
                 fontSize: 22,
                 color: AppColors.button,
@@ -63,8 +67,30 @@ class ProductDetailScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onPressed: () {
-                  // TODO: Add to cart logic
+                onPressed: () async {
+                  final cartItems = ref.read(cartProvider);
+                  final existing = cartItems.firstWhereOrNull(
+                    (item) => item.name == name,
+                  );
+                  if (existing != null) {
+                    await ref
+                        .read(cartProvider.notifier)
+                        .updateQuantity(existing.id, existing.quantity + 1);
+                  } else {
+                    await ref
+                        .read(cartProvider.notifier)
+                        .addToCart(
+                          CartItemModel.full(
+                            productId:
+                                name, // Use name as placeholder for productId
+                            name: name,
+                            price: price,
+                            quantity: 1,
+                            image: image.codePoint
+                                .toString(), // Store icon codePoint as string
+                          ),
+                        );
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Added to cart!')),
                   );

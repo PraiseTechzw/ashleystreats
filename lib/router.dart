@@ -5,6 +5,7 @@ import 'features/splash/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/register_screen.dart';
 import 'features/products/presentation/product_list_screen.dart';
+import 'features/cart/presentation/cart_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -24,9 +25,7 @@ class AppRouter {
           builder: (_) => const PlaceholderWidget('Product Detail'),
         );
       case AppRoutes.cart:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Cart'),
-        );
+        return MaterialPageRoute(builder: (_) => const CartScreen());
       case AppRoutes.checkout:
         return MaterialPageRoute(
           builder: (_) => const PlaceholderWidget('Checkout'),
