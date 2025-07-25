@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'core/constants/app_routes.dart';
 import 'features/splash/presentation/splash_screen.dart';
+import 'features/splash/presentation/onboarding_screen.dart';
+import 'features/auth/presentation/login_screen.dart';
+import 'features/auth/presentation/register_screen.dart';
+import 'features/products/presentation/product_list_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -8,21 +12,13 @@ class AppRouter {
       case AppRoutes.splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case AppRoutes.onboarding:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Onboarding'),
-        );
+        return MaterialPageRoute(builder: (_) => const OnboardingScreen());
       case AppRoutes.login:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Login'),
-        );
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
       case AppRoutes.register:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Register'),
-        );
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case AppRoutes.home:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Home'),
-        );
+        return MaterialPageRoute(builder: (_) => const ProductListScreen());
       case AppRoutes.productDetail:
         return MaterialPageRoute(
           builder: (_) => const PlaceholderWidget('Product Detail'),
