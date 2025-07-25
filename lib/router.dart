@@ -7,6 +7,8 @@ import 'features/auth/presentation/register_screen.dart';
 import 'features/products/presentation/product_list_screen.dart';
 import 'features/cart/presentation/cart_screen.dart';
 import 'features/cart/presentation/checkout_screen.dart';
+import 'features/orders/presentation/order_confirmation_screen.dart';
+import 'features/orders/presentation/order_history_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -31,7 +33,7 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const CheckoutScreen());
       case AppRoutes.orderConfirmation:
         return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Order Confirmation'),
+          builder: (_) => const OrderConfirmationScreen(),
         );
       case AppRoutes.orderTracking:
         return MaterialPageRoute(
@@ -42,9 +44,7 @@ class AppRouter {
           builder: (_) => const PlaceholderWidget('Profile'),
         );
       case AppRoutes.pastOrders:
-        return MaterialPageRoute(
-          builder: (_) => const PlaceholderWidget('Past Orders'),
-        );
+        return MaterialPageRoute(builder: (_) => const OrderHistoryScreen());
       case AppRoutes.adminLogin:
         return MaterialPageRoute(
           builder: (_) => const PlaceholderWidget('Admin Login'),

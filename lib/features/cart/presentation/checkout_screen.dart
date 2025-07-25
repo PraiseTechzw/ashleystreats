@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../provider/cart_provider.dart';
 import '../../../core/constants/colors.dart';
+import '../../../services/local_db/isar_service.dart';
+import '../../orders/data/order_model.dart';
+import '../../../core/constants/app_routes.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({Key? key}) : super(key: key);
@@ -33,12 +36,43 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate() && _deliveryTime != null) {
-      // TODO: Place order logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order placed! (Not yet implemented)')),
+  void _submit() async {
+    final cartItems = ref.read(cartProvider);
+    if (_formKey.currentState!.validate() &&
+        _deliveryTime != null &&
+        cartItems.isNotEmpty) {
+      final orderItems = cartItems
+          .map(
+            (item) => OrderItemEmbedded.full(
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+            ),
+          )
+          .toList();
+      final total = cartItems.fold(
+        0.0,
+        (sum, item) => sum + item.price * item.quantity,
       );
+      final order = OrderModel.full(
+        items: orderItems,
+        total: total,
+        address: _addressController.text,
+        phone: _phoneController.text,
+        deliveryTime: _deliveryTime!.format(context),
+        status: 'Pending',
+        createdAt: DateTime.now(),
+      );
+      await IsarService().addOrder(order);
+      await ref.read(cartProvider.notifier).clearCart();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.orderConfirmation);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Order placed!')));
+      }
     } else if (_deliveryTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a delivery time.')),

@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../features/cart/data/cart_item_model.dart';
+import '../../features/orders/data/order_model.dart';
 
 class IsarService {
   static final IsarService _instance = IsarService._internal();
@@ -43,5 +44,22 @@ class IsarService {
     await isar.writeTxn(() async {
       await isar.cartItemModels.clear();
     });
+  }
+
+  Future<void> addOrder(OrderModel order) async {
+    final isar = await db;
+    await isar.writeTxn(() async {
+      await isar.orderModels.put(order);
+    });
+  }
+
+  Future<List<OrderModel>> getOrders() async {
+    final isar = await db;
+    return await isar.orderModels.where().sortByCreatedAtDesc().findAll();
+  }
+
+  Future<OrderModel?> getOrderById(int id) async {
+    final isar = await db;
+    return await isar.orderModels.get(id);
   }
 }
