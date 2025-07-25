@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../provider/cart_provider.dart';
 import '../../../core/constants/colors.dart';
 import '../data/cart_item_model.dart';
+import '../../../core/constants/app_routes.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -115,7 +116,7 @@ class CartScreen extends ConsumerWidget {
                       ),
                     ),
                     onPressed: () {
-                      // TODO: Navigate to checkout
+                      Navigator.pushNamed(context, AppRoutes.checkout);
                     },
                     child: const Text('Checkout'),
                   ),
