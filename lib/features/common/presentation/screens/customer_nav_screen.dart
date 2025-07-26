@@ -1,52 +1,229 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../products/presentation/screens/product_list_screen.dart';
 import '../../../cart/presentation/screens/cart_screen.dart';
 import '../../../orders/presentation/screens/order_history_screen.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 // import your profile screen here
 
-class CustomerNavScreen extends StatefulWidget {
+class CustomerNavScreen extends ConsumerStatefulWidget {
   const CustomerNavScreen({Key? key}) : super(key: key);
 
   @override
-  State<CustomerNavScreen> createState() => _CustomerNavScreenState();
+  ConsumerState<CustomerNavScreen> createState() => _CustomerNavScreenState();
 }
 
-class _CustomerNavScreenState extends State<CustomerNavScreen> {
+class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
+    with TickerProviderStateMixin {
   int _selectedIndex = 0;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
 
   static final List<Widget> _screens = [
-    ProductListScreen(),
-    CartScreen(),
-    OrderHistoryScreen(),
+    const ProductListScreen(),
+    const CartScreen(),
+    const OrderHistoryScreen(),
     // ProfileScreen(), // Add your profile screen here
-    Center(child: Text('Profile')), // Placeholder
+    Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.person,
+            size: 80,
+            color: AppColors.primary.withOpacity(0.3),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Profile',
+            style: AppTheme.girlishHeadingStyle.copyWith(
+              fontSize: 24,
+              color: AppColors.secondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Coming Soon!',
+            style: AppTheme.elegantBodyStyle.copyWith(
+              fontSize: 16,
+              color: AppColors.secondary.withOpacity(0.6),
+            ),
+          ),
+        ],
+      ),
+    ), // Placeholder
   ];
 
+  static final List<Map<String, dynamic>> _navItems = [
+    {
+      'icon': Icons.home_rounded,
+      'label': 'Home',
+      'activeIcon': Icons.home_rounded,
+    },
+    {
+      'icon': Icons.search_rounded,
+      'label': 'Search',
+      'activeIcon': Icons.search_rounded,
+    },
+    {
+      'icon': Icons.favorite_border_rounded,
+      'label': 'Favorites',
+      'activeIcon': Icons.favorite_rounded,
+    },
+    {
+      'icon': Icons.shopping_bag_outlined,
+      'label': 'Cart',
+      'activeIcon': Icons.shopping_bag_rounded,
+    },
+    {
+      'icon': Icons.person_outline_rounded,
+      'label': 'Profile',
+      'activeIcon': Icons.person_rounded,
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
+    if (index == 1) {
+      // Search functionality - you can implement a search screen
+      return;
+    }
+    if (index == 2) {
+      // Favorites functionality - you can implement a favorites screen
+      return;
+    }
+
     setState(() {
       _selectedIndex = index;
+    });
+
+    // Add a subtle animation when tapping
+    _animationController.forward().then((_) {
+      _animationController.reverse();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.cake), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Cart',
+      backgroundColor: AppColors.background,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(0.1, 0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                  ),
+              child: child,
+            ),
+          );
+        },
+        child: _screens[_selectedIndex],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_navItems.length, (index) {
+                final item = _navItems[index];
+                final isSelected = _selectedIndex == index;
+
+                return GestureDetector(
+                  onTap: () => _onItemTapped(index),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withOpacity(0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedScale(
+                          scale: isSelected ? 1.2 : 1.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            isSelected ? item['activeIcon'] : item['icon'],
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.secondary.withOpacity(0.6),
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
+                          style: AppTheme.elegantBodyStyle.copyWith(
+                            fontSize: 10,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.secondary.withOpacity(0.6),
+                          ),
+                          child: Text(item['label']),
+                        ),
+                        if (isSelected)
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Orders',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        ),
       ),
     );
   }

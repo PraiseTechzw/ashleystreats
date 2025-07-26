@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/custom_toast.dart';
+import '../../../../core/widgets/confetti_celebration.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -20,10 +23,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   final _confirmPasswordController = TextEditingController();
   final _displayNameController = TextEditingController();
   final _phoneController = TextEditingController();
-  bool _isLoading = false;
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
   String? _error;
+
+  // Animation controllers
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -32,16 +38,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   @override
   void initState() {
     super.initState();
+
+    // Initialize animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
+
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
           CurvedAnimation(
@@ -49,12 +59,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
           ),
         );
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.4, 1.0, curve: Curves.elasticOut),
       ),
     );
+
     _animationController.forward();
   }
 
@@ -82,60 +94,67 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           .read(authStateProvider.notifier)
           .register(
             _emailController.text.trim(),
-            _passwordController.text.trim(),
+            _passwordController.text,
             _displayNameController.text.trim(),
             _phoneController.text.trim(),
           );
 
       if (mounted) {
-        // Show success message before navigation
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Account created successfully!'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-
-        // Navigate to home after a short delay
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            Navigator.of(context).pushReplacementNamed('/home');
-          }
-        });
+        // Check if registration was successful
+        final authState = ref.read(authStateProvider);
+        if (authState.status == AuthStatus.authenticated) {
+          // Show confetti celebration
+          ConfettiManager.showCelebration(
+            context,
+            onComplete: () {
+              // Navigate to home after celebration
+              Navigator.of(context).pushReplacementNamed('/home');
+            },
+          );
+        } else {
+          setState(() {
+            _error =
+                authState.errorMessage ??
+                'Registration failed. Please try again.';
+          });
+          ToastManager.showError(
+            context,
+            'Registration failed. Please try again.',
+          );
+        }
       }
     } catch (e) {
-      setState(() {
-        _error = _getErrorMessage(e.toString());
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+        ToastManager.showError(context, 'An error occurred. Please try again.');
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  String _getErrorMessage(String error) {
+  String? _getErrorMessage(String? error) {
+    if (error == null) return null;
+
     if (error.contains('email-already-in-use')) {
-      return 'An account with this email already exists';
+      return 'An account with this email already exists.';
     } else if (error.contains('weak-password')) {
-      return 'Password is too weak. Please choose a stronger password';
+      return 'Password is too weak. Please choose a stronger password.';
     } else if (error.contains('invalid-email')) {
-      return 'Please enter a valid email address';
+      return 'Please enter a valid email address.';
     } else if (error.contains('operation-not-allowed')) {
-      return 'Email/password accounts are not enabled';
-    } else if (error.contains('network')) {
-      return 'Network error. Please check your connection';
-    } else {
-      return 'Registration failed. Please try again';
+      return 'Email/password accounts are not enabled.';
+    } else if (error.contains('network-request-failed')) {
+      return 'Network error. Please check your connection.';
     }
-  }
 
-  void _goToLogin() {
-    Navigator.of(context).pop();
+    return 'An unexpected error occurred. Please try again.';
   }
 
   @override
@@ -168,7 +187,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Logo/Brand Section
+                          // Logo/Brand Section with Cupcake Animation
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
@@ -182,48 +201,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.cake,
-                              size: 80,
-                              color: AppColors.primary,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              child: Lottie.asset(
+                                'assets/animations/cupcakeani.json',
+                                fit: BoxFit.contain,
+                                repeat: true,
+                                animate: true,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 40),
 
-                          // Welcome Text
+                          // Welcome Text using AppTheme styles
                           Text(
                             'Join Ashley\'s Treats!',
                             style: AppTheme.girlishHeadingStyle,
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Create your account to start ordering delicious treats',
+                            'Create your account and start your sweet journey',
                             style: AppTheme.elegantBodyStyle,
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 48),
 
-                          // Full Name Field
+                          // Display Name Field
                           TextFormField(
                             controller: _displayNameController,
                             decoration: const InputDecoration(
                               labelText: 'Full Name',
-                              prefixIcon: Icon(Icons.person_outline),
+                              prefixIcon: Icon(Icons.person_outlined),
                               hintText: 'Enter your full name',
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your name';
                               }
-                              if (value.trim().split(' ').length < 2) {
-                                return 'Please enter your full name';
+                              if (value.length < 2) {
+                                return 'Name must be at least 2 characters';
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: 24),
 
-                          // Phone Number Field
+                          // Phone Field
                           TextFormField(
                             controller: _phoneController,
                             decoration: const InputDecoration(
@@ -235,9 +259,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your phone number';
-                              }
-                              if (value.length < 10) {
-                                return 'Please enter a valid phone number';
                               }
                               return null;
                             },
@@ -258,9 +279,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                 return 'Please enter your email';
                               }
                               if (!RegExp(
-                                r'^[^@\s]+@[^@\s]+\.[^@\s]+',
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                               ).hasMatch(value)) {
-                                return 'Enter a valid email';
+                                return 'Please enter a valid email';
                               }
                               return null;
                             },
@@ -273,7 +294,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             decoration: InputDecoration(
                               labelText: 'Password',
                               prefixIcon: const Icon(Icons.lock_outlined),
-                              hintText: 'Create a strong password',
+                              hintText: 'Enter your password',
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
@@ -290,7 +311,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             obscureText: _obscurePassword,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
+                                return 'Please enter a password';
                               }
                               if (value.length < 6) {
                                 return 'Password must be at least 6 characters';
@@ -310,7 +331,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             controller: _confirmPasswordController,
                             decoration: InputDecoration(
                               labelText: 'Confirm Password',
-                              prefixIcon: const Icon(Icons.lock_outline),
+                              prefixIcon: const Icon(Icons.lock_outlined),
                               hintText: 'Confirm your password',
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -339,7 +360,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                           ),
                           const SizedBox(height: 32),
 
-                          // Error Message
+                          // Error Message container
                           if (_error != null)
                             Container(
                               width: double.infinity,
@@ -361,7 +382,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      _error!,
+                                      _getErrorMessage(_error) ?? _error!,
                                       style: TextStyle(
                                         color: AppColors.accent,
                                         fontSize: 14,
@@ -398,7 +419,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Already have an account? ',
+                                "Already have an account? ",
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: AppColors.secondary.withOpacity(
@@ -407,7 +428,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                     ),
                               ),
                               TextButton(
-                                onPressed: _goToLogin,
+                                onPressed: () =>
+                                    Navigator.of(context).pushNamed('/login'),
                                 child: Text(
                                   'Sign In',
                                   style: AppTheme.linkTextStyle,

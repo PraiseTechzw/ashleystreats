@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/custom_toast.dart';
+import '../../../../core/widgets/confetti_celebration.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -17,9 +20,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
   String? _error;
+
+  // Animation controllers
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -28,16 +33,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   void initState() {
     super.initState();
+
+    // Initialize animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
+
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
           CurvedAnimation(
@@ -45,12 +54,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
           ),
         );
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.4, 1.0, curve: Curves.elasticOut),
       ),
     );
+
     _animationController.forward();
   }
 
@@ -73,55 +84,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     try {
       await ref
           .read(authStateProvider.notifier)
-          .login(_emailController.text.trim(), _passwordController.text.trim());
+          .login(_emailController.text.trim(), _passwordController.text);
 
       if (mounted) {
-        // Show success message before navigation
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Login successful!'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-
-        // Navigate to home after a short delay
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            Navigator.of(context).pushReplacementNamed('/home');
-          }
-        });
+        // Check if login was successful
+        final authState = ref.read(authStateProvider);
+        if (authState.status == AuthStatus.authenticated) {
+          // Show confetti celebration
+          ConfettiManager.showCelebration(
+            context,
+            onComplete: () {
+              // Navigate to home after celebration
+              Navigator.of(context).pushReplacementNamed('/home');
+            },
+          );
+        } else {
+          setState(() {
+            _error =
+                authState.errorMessage ??
+                'Login failed. Please check your credentials.';
+          });
+          ToastManager.showError(context, 'Login failed. Please try again.');
+        }
       }
     } catch (e) {
-      setState(() {
-        _error = _getErrorMessage(e.toString());
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+        ToastManager.showError(context, 'An error occurred. Please try again.');
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  String _getErrorMessage(String error) {
+  String? _getErrorMessage(String? error) {
+    if (error == null) return null;
+
     if (error.contains('user-not-found')) {
-      return 'No account found with this email address';
+      return 'No account found with this email address.';
     } else if (error.contains('wrong-password')) {
-      return 'Incorrect password. Please try again';
+      return 'Incorrect password. Please try again.';
     } else if (error.contains('invalid-email')) {
-      return 'Please enter a valid email address';
+      return 'Please enter a valid email address.';
     } else if (error.contains('user-disabled')) {
-      return 'This account has been disabled';
+      return 'This account has been disabled.';
     } else if (error.contains('too-many-requests')) {
-      return 'Too many failed attempts. Please try again later';
-    } else if (error.contains('network')) {
-      return 'Network error. Please check your connection';
-    } else {
-      return 'Login failed. Please try again';
+      return 'Too many failed attempts. Please try again later.';
+    } else if (error.contains('network-request-failed')) {
+      return 'Network error. Please check your connection.';
     }
+
+    return 'An unexpected error occurred. Please try again.';
   }
 
   @override
@@ -154,7 +173,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Logo/Brand Section
+                          // Logo/Brand Section with Cupcake Animation
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
@@ -168,15 +187,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.cake,
-                              size: 80,
-                              color: AppColors.primary,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              child: Lottie.asset(
+                                'assets/animations/cupcakeani.json',
+                                fit: BoxFit.contain,
+                                repeat: true,
+                                animate: true,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 40),
 
-                          // Welcome Text
+                          // Welcome Text using AppTheme styles
                           Text(
                             'Welcome Back!',
                             style: AppTheme.girlishHeadingStyle,
@@ -189,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                           const SizedBox(height: 48),
 
-                          // Email Field
+                          // Email Field using InputDecoration from AppTheme
                           TextFormField(
                             controller: _emailController,
                             decoration: const InputDecoration(
@@ -203,16 +227,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 return 'Please enter your email';
                               }
                               if (!RegExp(
-                                r'^[^@\s]+@[^@\s]+\.[^@\s]+',
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                               ).hasMatch(value)) {
-                                return 'Enter a valid email';
+                                return 'Please enter a valid email';
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: 24),
 
-                          // Password Field
+                          // Password Field using InputDecoration from AppTheme
                           TextFormField(
                             controller: _passwordController,
                             decoration: InputDecoration(
@@ -245,7 +269,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                           const SizedBox(height: 32),
 
-                          // Error Message
+                          // Error Message container
                           if (_error != null)
                             Container(
                               width: double.infinity,
@@ -267,7 +291,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      _error!,
+                                      _getErrorMessage(_error) ?? _error!,
                                       style: TextStyle(
                                         color: AppColors.accent,
                                         fontSize: 14,
@@ -280,7 +304,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             ),
                           if (_error != null) const SizedBox(height: 24),
 
-                          // Login Button
+                          // Login Button using ElevatedButton theme
                           SizedBox(
                             width: double.infinity,
                             height: 56,
