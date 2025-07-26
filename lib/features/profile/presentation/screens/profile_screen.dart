@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../../features/orders/presentation/screens/order_history_screen.dart';
+import 'package:lottie/lottie.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -126,71 +127,197 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        title: Text(
-          'Profile',
-          style: AppTheme.girlishHeadingStyle.copyWith(
-            fontSize: 22,
-            color: AppColors.secondary,
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: Icon(Icons.person, color: AppColors.primary, size: 48),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _name,
-              style: AppTheme.girlishHeadingStyle.copyWith(
-                fontSize: 24,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _email,
-              style: AppTheme.elegantBodyStyle.copyWith(
-                fontSize: 14,
-                color: AppColors.secondary.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 32),
-            ListTile(
-              leading: Icon(Icons.edit, color: AppColors.primary),
-              title: Text('Edit Profile', style: AppTheme.elegantBodyStyle),
-              onTap: _editProfile,
-            ),
-            ListTile(
-              leading: Icon(Icons.receipt_long, color: AppColors.primary),
-              title: Text('My Orders', style: AppTheme.elegantBodyStyle),
-              onTap: _goToOrders,
-            ),
-            ListTile(
-              leading: Icon(Icons.location_on, color: AppColors.primary),
-              title: Text('Delivery Address', style: AppTheme.elegantBodyStyle),
-              onTap: _editAddress,
-            ),
-            ListTile(
-              leading: Icon(Icons.logout, color: AppColors.accent),
-              title: Text(
-                'Logout',
-                style: AppTheme.elegantBodyStyle.copyWith(
-                  color: AppColors.accent,
+      body: Stack(
+        children: [
+          // Soft playful background accent
+          Positioned(
+            top: -60,
+            left: -60,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withOpacity(0.15),
+                    AppColors.cardColor.withOpacity(0.12),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
-              onTap: _showLogoutDialog,
             ),
-          ],
-        ),
+          ),
+          // Lottie accent (optional, comment out if not desired)
+          // Positioned(
+          //   top: 0,
+          //   right: 0,
+          //   child: Lottie.asset('assets/animations/cupcakeani.json', width: 80, height: 80, repeat: true),
+          // ),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Gradient header with avatar
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 32, bottom: 24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary.withOpacity(0.12),
+                          AppColors.cardColor.withOpacity(0.10),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(32),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            CircleAvatar(
+                              radius: 48,
+                              backgroundColor: AppColors.primary.withOpacity(
+                                0.15,
+                              ),
+                              child: Icon(
+                                Icons.person,
+                                color: AppColors.primary,
+                                size: 56,
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: _editProfile,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(
+                                          0.2,
+                                        ),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _name,
+                          style: AppTheme.girlishHeadingStyle.copyWith(
+                            fontSize: 26,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _email,
+                          style: AppTheme.elegantBodyStyle.copyWith(
+                            fontSize: 15,
+                            color: AppColors.secondary.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Profile actions grouped in a card
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Card(
+                      elevation: 0,
+                      color: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Column(
+                        children: [
+                          _profileAction(
+                            icon: Icons.edit,
+                            label: 'Edit Profile',
+                            color: AppColors.primary,
+                            onTap: _editProfile,
+                          ),
+                          _profileAction(
+                            icon: Icons.receipt_long,
+                            label: 'My Orders',
+                            color: AppColors.primary,
+                            onTap: _goToOrders,
+                          ),
+                          _profileAction(
+                            icon: Icons.location_on,
+                            label: 'Delivery Address',
+                            color: AppColors.primary,
+                            onTap: _editAddress,
+                          ),
+                          _profileAction(
+                            icon: Icons.logout,
+                            label: 'Logout',
+                            color: AppColors.accent,
+                            onTap: _showLogoutDialog,
+                            isLast: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _profileAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon, color: color),
+          title: Text(
+            label,
+            style: AppTheme.elegantBodyStyle.copyWith(fontSize: 16),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: onTap,
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(
+              height: 1,
+              color: AppColors.cardColor.withOpacity(0.3),
+            ),
+          ),
+      ],
     );
   }
 }
