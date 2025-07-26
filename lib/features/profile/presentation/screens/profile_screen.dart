@@ -150,11 +150,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           // Lottie accent (optional, comment out if not desired)
-          // Positioned(
-          //   top: 0,
-          //   right: 0,
-          //   child: Lottie.asset('assets/animations/cupcakeani.json', width: 80, height: 80, repeat: true),
-          // ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Lottie.asset('assets/animations/cupcakeani.json', width: 80, height: 80, repeat: true),
+          ),
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
