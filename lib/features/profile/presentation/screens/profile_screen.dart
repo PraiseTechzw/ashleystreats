@@ -15,6 +15,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _name = 'Ashley';
   String _email = 'ashley@email.com';
   String _avatar = '';
+  bool _notificationsEnabled = true;
+  bool _darkModeEnabled = false;
+  String _selectedLanguage = 'English';
 
   void _editProfile() async {
     final result = await showDialog<Map<String, String>>(
@@ -123,6 +126,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _toggleNotifications() {
+    setState(() {
+      _notificationsEnabled = !_notificationsEnabled;
+    });
+  }
+
+  void _toggleDarkMode() {
+    setState(() {
+      _darkModeEnabled = !_darkModeEnabled;
+    });
+  }
+
+  
+  void _showSettingsDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          title,
+          style: AppTheme.girlishHeadingStyle.copyWith(
+            color: AppColors.primary,
+          ),
+        ),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,12 +185,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-          ),
-          // Lottie accent (optional, comment out if not desired)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Lottie.asset('assets/animations/cupcakeani.json', width: 80, height: 80, repeat: true),
           ),
           SafeArea(
             child: SingleChildScrollView(
@@ -281,6 +312,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  // Settings section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8, bottom: 12),
+                          child: Text(
+                            'Settings',
+                            style: AppTheme.girlishHeadingStyle.copyWith(
+                              fontSize: 20,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                        Card(
+                          elevation: 0,
+                          color: AppColors.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Column(
+                            children: [
+                              _settingsAction(
+                                icon: Icons.notifications,
+                                label: 'Notifications',
+                                color: AppColors.primary,
+                                trailing: Switch(
+                                  value: _notificationsEnabled,
+                                  onChanged: (value) => _toggleNotifications(),
+                                  activeColor: AppColors.primary,
+                                ),
+                              ),
+                              _settingsAction(
+                                icon: Icons.dark_mode,
+                                label: 'Dark Mode',
+                                color: AppColors.secondary,
+                                trailing: Switch(
+                                  value: _darkModeEnabled,
+                                  onChanged: (value) => _toggleDarkMode(),
+                                  activeColor: AppColors.primary,
+                                ),
+                              ),
+                              
+                              
+                        
+                              _settingsAction(
+                                icon: Icons.privacy_tip,
+                                label: 'Privacy Policy',
+                                color: AppColors.primary,
+                                onTap: () => _showSettingsDialog(
+                                  'Privacy Policy',
+                                  'Our privacy policy details how we protect your data.',
+                                ),
+                              ),
+                              _settingsAction(
+                                icon: Icons.help,
+                                label: 'Help & Support',
+                                color: AppColors.primary,
+                                onTap: () => _showSettingsDialog(
+                                  'Help & Support',
+                                  'Get help with your orders and account.',
+                                ),
+                              ),
+                              _settingsAction(
+                                icon: Icons.info,
+                                label: 'About',
+                                color: AppColors.primary,
+                                onTap: () => _showSettingsDialog(
+                                  'About',
+                                  'Ashley\'s Treats v1.0.0\nDelicious sweet and savory treats delivered to your doorstep!',
+                                ),
+                              ),
+                              _settingsAction(
+                                icon: Icons.description,
+                                label: 'Terms of Service',
+                                color: AppColors.primary,
+                                onTap: () => _showSettingsDialog(
+                                  'Terms of Service',
+                                  'Our terms of service and usage guidelines.',
+                                ),
+                                isLast: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -307,6 +429,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: AppTheme.elegantBodyStyle.copyWith(fontSize: 16),
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: onTap,
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(
+              height: 1,
+              color: AppColors.cardColor.withOpacity(0.3),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _settingsAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    Widget? trailing,
+    VoidCallback? onTap,
+    bool isLast = false,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon, color: color),
+          title: Text(
+            label,
+            style: AppTheme.elegantBodyStyle.copyWith(fontSize: 16),
+          ),
+          trailing:
+              trailing ??
+              (onTap != null
+                  ? const Icon(Icons.arrow_forward_ios, size: 16)
+                  : null),
           onTap: onTap,
         ),
         if (!isLast)

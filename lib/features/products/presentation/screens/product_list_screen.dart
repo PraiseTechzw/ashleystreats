@@ -30,77 +30,103 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
   final String location =
       'New York'; // Replace with actual location if available
 
-  // Mock categories (from onboarding)
+  // Categories from Ashley's Treats
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Cupcakes', 'icon': Icons.cake, 'color': AppColors.primary},
-    {'name': 'Cookies', 'icon': Icons.cookie, 'color': AppColors.secondary},
-    {'name': 'Sweet Treats', 'icon': Icons.icecream, 'color': AppColors.accent},
     {
-      'name': 'Savory',
-      'icon': Icons.lunch_dining,
+      'name': 'Cake Slices',
+      'icon': Icons.cake_outlined,
+      'color': AppColors.secondary,
+    },
+    {
+      'name': 'Cake Tasters',
+      'icon': Icons.cake_rounded,
+      'color': AppColors.accent,
+    },
+    {
+      'name': 'Cake Pops',
+      'icon': Icons.cake_outlined,
       'color': AppColors.cardColor,
     },
-    {
-      'name': 'Delivery',
-      'icon': Icons.delivery_dining,
-      'color': AppColors.primary,
-    },
+    {'name': 'Cookies', 'icon': Icons.cookie, 'color': AppColors.primary},
+    {'name': 'Donuts', 'icon': Icons.circle, 'color': AppColors.secondary},
+    {'name': 'Muffins', 'icon': Icons.cake_outlined, 'color': AppColors.accent},
+    {'name': 'Brownies', 'icon': Icons.square, 'color': AppColors.cardColor},
   ];
 
-  // Mock specials, sweets, and savory
+  // Today's Specials
   final List<Map<String, dynamic>> _specials = [
     {
       'name': 'Rainbow Cupcake',
       'price': 4.50,
       'image': 'assets/images/cupcakes_deal.jpg',
       'isSpecial': true,
-      'type': 'sweet',
+      'type': 'cupcake',
     },
     {
-      'name': 'Cheese Pie',
+      'name': 'Chocolate Brownie',
+      'price': 4.00,
+      'image': 'assets/images/chocolate_brownie.jpg',
+      'isSpecial': true,
+      'type': 'brownie',
+    },
+    {
+      'name': 'Vanilla Cake Slice',
       'price': 5.00,
-      'image': 'assets/images/cheese_pie.jpg',
+      'image': 'assets/images/vanilla_slice.jpg',
       'isSpecial': true,
-      'type': 'savory',
-    },
-    {
-      'name': 'Chocolate Chip Cookie',
-      'price': 2.50,
-      'image': 'assets/images/chocolate_cookie.jpg',
-      'isSpecial': true,
-      'type': 'sweet',
+      'type': 'cake',
     },
   ];
 
   final List<Map<String, dynamic>> _popularSweets = [
     {
-      'name': 'Strawberry Cupcake',
-      'price': 4.00,
-      'image': 'assets/images/strawberry_cupcake.jpg',
+      'name': 'Chocolate Cupcake',
+      'price': 4.50,
+      'image': 'assets/images/chocolate_cupcake.jpg',
     },
-    {'name': 'Macaron', 'price': 3.00, 'image': 'assets/images/macaron.jpg'},
     {
-      'name': 'Red Velvet Cookie',
+      'name': 'Vanilla Cake Slice',
+      'price': 5.00,
+      'image': 'assets/images/vanilla_slice.jpg',
+    },
+    {
+      'name': 'Red Velvet Cake Pop',
+      'price': 3.50,
+      'image': 'assets/images/red_velvet_pop.jpg',
+    },
+    {
+      'name': 'Chocolate Chip Cookie',
       'price': 2.80,
-      'image': 'assets/images/red_velvet_cookie.jpg',
+      'image': 'assets/images/chocolate_cookie.jpg',
+    },
+    {
+      'name': 'Glazed Donut',
+      'price': 3.20,
+      'image': 'assets/images/glazed_donut.jpg',
     },
   ];
 
   final List<Map<String, dynamic>> _popularSavory = [
     {
-      'name': 'Mini Quiche',
+      'name': 'Blueberry Muffin',
       'price': 3.50,
-      'image': 'assets/images/mini_quiche.jpg',
+      'image': 'assets/images/blueberry_muffin.jpg',
     },
     {
-      'name': 'Sausage Roll',
-      'price': 3.20,
-      'image': 'assets/images/sausage_roll.jpg',
+      'name': 'Chocolate Brownie',
+      'price': 4.00,
+      'image': 'assets/images/chocolate_brownie.jpg',
     },
     {
-      'name': 'Cheese Stick',
-      'price': 2.90,
-      'image': 'assets/images/cheese_stick.jpg',
+      'name': 'Carrot Cake Slice',
+      'price': 5.50,
+      'image': 'assets/images/carrot_cake.jpg',
+    },
+    {
+      'name': 'Strawberry Cake Taster',
+      'price': 2.50,
+      'image': 'assets/images/strawberry_taster.jpg',
     },
   ];
 
@@ -289,15 +315,15 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
             SliverToBoxAdapter(child: _buildSectionHeader('Categories', () {})),
             SliverToBoxAdapter(child: _buildCategoriesSection()),
 
-            // Popular Sweets
+            // Popular Cupcakes & Cakes
             SliverToBoxAdapter(
-              child: _buildSectionHeader('Popular Sweets', () {}),
+              child: _buildSectionHeader('Popular Cupcakes & Cakes', () {}),
             ),
             SliverToBoxAdapter(child: _buildPopularSection(_popularSweets)),
 
-            // Popular Savory
+            // Popular Cookies & More
             SliverToBoxAdapter(
-              child: _buildSectionHeader('Popular Savory', () {}),
+              child: _buildSectionHeader('Popular Cookies & More', () {}),
             ),
             SliverToBoxAdapter(child: _buildPopularSection(_popularSavory)),
 
