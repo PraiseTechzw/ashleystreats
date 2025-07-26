@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../products/presentation/screens/product_list_screen.dart';
 import '../../../cart/presentation/screens/cart_screen.dart';
 import '../../../orders/presentation/screens/order_history_screen.dart';
+import '../../../search/presentation/screens/search_screen.dart';
+import '../../../profile/presentation/screens/profile_screen.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
-// import your profile screen here
 
 class CustomerNavScreen extends ConsumerStatefulWidget {
   const CustomerNavScreen({Key? key}) : super(key: key);
@@ -21,38 +22,11 @@ class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
   late Animation<double> _scaleAnimation;
 
   static final List<Widget> _screens = [
-    const ProductListScreen(),
-    const CartScreen(),
-    const OrderHistoryScreen(),
-    // ProfileScreen(), // Add your profile screen here
-    Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person,
-            size: 80,
-            color: AppColors.primary.withOpacity(0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Profile',
-            style: AppTheme.girlishHeadingStyle.copyWith(
-              fontSize: 24,
-              color: AppColors.secondary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming Soon!',
-            style: AppTheme.elegantBodyStyle.copyWith(
-              fontSize: 16,
-              color: AppColors.secondary.withOpacity(0.6),
-            ),
-          ),
-        ],
-      ),
-    ), // Placeholder
+    const ProductListScreen(), // Home
+    const SearchScreen(), // Search
+    const OrderHistoryScreen(), // Orders
+    const CartScreen(), // Cart
+    const ProfileScreen(), // Profile
   ];
 
   static final List<Map<String, dynamic>> _navItems = [
@@ -68,7 +42,7 @@ class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
     },
     {
       'icon': Icons.favorite_border_rounded,
-      'label': 'Favorites',
+      'label': 'Orders',
       'activeIcon': Icons.favorite_rounded,
     },
     {
@@ -102,20 +76,9 @@ class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
   }
 
   void _onItemTapped(int index) {
-    if (index == 1) {
-      // Search functionality - you can implement a search screen
-      return;
-    }
-    if (index == 2) {
-      // Favorites functionality - you can implement a favorites screen
-      return;
-    }
-
     setState(() {
       _selectedIndex = index;
     });
-
-    // Add a subtle animation when tapping
     _animationController.forward().then((_) {
       _animationController.reverse();
     });

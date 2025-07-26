@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../data/cart_repository.dart';
-import '../../data/models/cart_item_isar.dart';
-import '../../../products/data/product_repository.dart';
-import '../../../products/data/models/product_isar.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'package:lottie/lottie.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -12,76 +11,259 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final CartRepository _cartRepo = CartRepository();
-  final ProductRepository _productRepo = ProductRepository();
-  late Future<List<CartItemIsar>> _cartFuture;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _cart = [];
+
+  // Mock cart data
+  final List<Map<String, dynamic>> _mockCart = [
+    {'name': 'Rainbow Cupcake', 'price': 4.50, 'quantity': 2, 'type': 'sweet'},
+    {'name': 'Cheese Pie', 'price': 5.00, 'quantity': 1, 'type': 'savory'},
+    {
+      'name': 'Chocolate Chip Cookie',
+      'price': 2.50,
+      'quantity': 3,
+      'type': 'sweet',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    _cartFuture = _cartRepo.getAllCartItems();
+    _loadCart();
   }
 
-  Future<ProductIsar?> _getProduct(int productId) async {
-    final products = await _productRepo.getAllProducts();
-    final matches = products.where((p) => p.id == productId);
-    if (matches.isEmpty) return null;
-    return matches.first;
+  Future<void> _loadCart() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    setState(() {
+      _cart = List<Map<String, dynamic>>.from(_mockCart);
+      _isLoading = false;
+    });
   }
+
+  void _updateQuantity(int index, int delta) {
+    setState(() {
+      _cart[index]['quantity'] += delta;
+      if (_cart[index]['quantity'] < 1) _cart[index]['quantity'] = 1;
+    });
+  }
+
+  void _removeItem(int index) {
+    setState(() {
+      _cart.removeAt(index);
+    });
+  }
+
+  double get _subtotal =>
+      _cart.fold(0.0, (sum, item) => sum + item['price'] * item['quantity']);
+  double get _deliveryFee => _cart.isEmpty ? 0.0 : 2.50;
+  double get _total => _subtotal + _deliveryFee;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cart')),
-      body: FutureBuilder<List<CartItemIsar>>(
-        future: _cartFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Your cart is empty.'));
-          }
-          final cartItems = snapshot.data!;
-          return ListView.builder(
-            itemCount: cartItems.length,
-            itemBuilder: (context, index) {
-              final cartItem = cartItems[index];
-              return FutureBuilder<ProductIsar?>(
-                future: _getProduct(cartItem.productId),
-                builder: (context, productSnapshot) {
-                  final product = productSnapshot.data;
-                  if (product == null) {
-                    return const ListTile(title: Text('Product not found'));
-                  }
-                  return ListTile(
-                    leading: product.imageUrl.isNotEmpty
-                        ? Image.network(
-                            product.imageUrl,
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
-                          )
-                        : const Icon(Icons.cake),
-                    title: Text(product.name),
-                    subtitle: Text(
-                      'Qty: ${cartItem.quantity}  |  \$${(product.price * cartItem.quantity).toStringAsFixed(2)}',
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        title: Text(
+          'My Cart',
+          style: AppTheme.girlishHeadingStyle.copyWith(
+            fontSize: 22,
+            color: AppColors.secondary,
+          ),
+        ),
+      ),
+      body: _isLoading
+          ? Center(
+              child: Lottie.asset(
+                'assets/animations/loading.json',
+                width: 80,
+                height: 80,
+              ),
+            )
+          : _cart.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/animations/empty.json',
+                    width: 100,
+                    height: 100,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Your cart is empty',
+                    style: AppTheme.elegantBodyStyle.copyWith(
+                      color: AppColors.secondary.withOpacity(0.6),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () async {
-                        await _cartRepo.deleteCartItem(cartItem.id);
-                        setState(() {
-                          _cartFuture = _cartRepo.getAllCartItems();
-                        });
-                      },
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _cart.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = _cart[index];
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          leading: Icon(
+                            item['type'] == 'sweet'
+                                ? Icons.cake
+                                : Icons.lunch_dining,
+                            color: item['type'] == 'sweet'
+                                ? AppColors.primary
+                                : AppColors.cardColor,
+                            size: 32,
+                          ),
+                          title: Text(
+                            item['name'],
+                            style: AppTheme.elegantBodyStyle.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '\$${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                            style: AppTheme.elegantBodyStyle.copyWith(
+                              fontSize: 13,
+                              color: AppColors.secondary.withOpacity(0.7),
+                            ),
+                          ),
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                    color: AppColors.primary,
+                                    onPressed: () => _updateQuantity(index, -1),
+                                  ),
+                                  Text(
+                                    '${item['quantity']}',
+                                    style: AppTheme.elegantBodyStyle.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    color: AppColors.primary,
+                                    onPressed: () => _updateQuantity(index, 1),
+                                  ),
+                                ],
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                color: AppColors.accent,
+                                onPressed: () => _removeItem(index),
+                                tooltip: 'Remove',
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
                     ),
-                  );
-                },
-              );
-            },
-          );
-        },
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildSummaryRow('Subtotal', _subtotal),
+                      _buildSummaryRow('Delivery Fee', _deliveryFee),
+                      const Divider(height: 32),
+                      _buildSummaryRow('Total', _total, isTotal: true),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _cart.isEmpty ? null : () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text(
+                            'Checkout',
+                            style: AppTheme.buttonTextStyle.copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, double value, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTheme.elegantBodyStyle.copyWith(
+              fontSize: isTotal ? 18 : 14,
+              color: isTotal
+                  ? AppColors.primary
+                  : AppColors.secondary.withOpacity(0.7),
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            '\$${value.toStringAsFixed(2)}',
+            style: AppTheme.elegantBodyStyle.copyWith(
+              fontSize: isTotal ? 18 : 14,
+              color: isTotal ? AppColors.primary : AppColors.secondary,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

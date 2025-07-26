@@ -6,6 +6,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/product_repository.dart';
 import '../../data/models/product_isar.dart';
 import 'product_detail_screen.dart';
+import 'package:lottie/lottie.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -23,78 +24,92 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  // Sample data for deals
-  final List<Map<String, dynamic>> _deals = [
-    {
-      'name': 'Cupcakes (5+1)',
-      'bakery': 'Mad Batter',
-      'price': 12.50,
-      'originalPrice': 15.80,
-      'image': 'assets/images/cupcakes_deal.jpg',
-      'isFavorite': false,
-    },
-    {
-      'name': 'Chocolate Cream',
-      'bakery': 'Sweet Dreams',
-      'price': 8.99,
-      'originalPrice': 12.00,
-      'image': 'assets/images/chocolate_cream.jpg',
-      'isFavorite': true,
-    },
-    {
-      'name': 'Vanilla Delight',
-      'bakery': 'Cupcake Corner',
-      'price': 10.50,
-      'originalPrice': 14.00,
-      'image': 'assets/images/vanilla_delight.jpg',
-      'isFavorite': false,
-    },
-  ];
+  // Mock user data
+  final String userName =
+      'Ashley'; // Replace with actual user name if available
+  final String location =
+      'New York'; // Replace with actual location if available
 
-  // Sample data for categories
+  // Mock categories (from onboarding)
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Cupcakes', 'icon': Icons.cake, 'color': AppColors.primary},
+    {'name': 'Cookies', 'icon': Icons.cookie, 'color': AppColors.secondary},
+    {'name': 'Sweet Treats', 'icon': Icons.icecream, 'color': AppColors.accent},
     {
-      'name': 'Breads',
-      'icon': Icons.breakfast_dining,
-      'color': AppColors.secondary,
-    },
-    {'name': 'Donuts', 'icon': Icons.circle, 'color': AppColors.accent},
-    {
-      'name': 'Pastries',
-      'icon': Icons.cake_outlined,
+      'name': 'Savory',
+      'icon': Icons.lunch_dining,
       'color': AppColors.cardColor,
     },
-    {'name': 'Cookies', 'icon': Icons.cookie, 'color': AppColors.primary},
+    {
+      'name': 'Delivery',
+      'icon': Icons.delivery_dining,
+      'color': AppColors.primary,
+    },
   ];
 
-  // Sample data for popular bakeries
-  final List<Map<String, dynamic>> _bakeries = [
+  // Mock specials, sweets, and savory
+  final List<Map<String, dynamic>> _specials = [
     {
-      'name': 'The Bradley Baking',
-      'logo': 'assets/images/bradley_logo.jpg',
-      'hours': '10:00 am - 10:00 pm',
-      'distance': '3.5 km',
-      'rating': 4.8,
-      'est': 'EST. 2017',
+      'name': 'Rainbow Cupcake',
+      'price': 4.50,
+      'image': 'assets/images/cupcakes_deal.jpg',
+      'isSpecial': true,
+      'type': 'sweet',
     },
     {
-      'name': 'Love Donuts',
-      'logo': 'assets/images/love_donuts_logo.jpg',
-      'hours': '8:00 am - 9:00 pm',
-      'distance': '2.1 km',
-      'rating': 4.6,
-      'est': 'EST. 2019',
+      'name': 'Cheese Pie',
+      'price': 5.00,
+      'image': 'assets/images/cheese_pie.jpg',
+      'isSpecial': true,
+      'type': 'savory',
     },
     {
-      'name': 'Sweet Dreams Bakery',
-      'logo': 'assets/images/sweet_dreams_logo.jpg',
-      'hours': '9:00 am - 8:00 pm',
-      'distance': '4.2 km',
-      'rating': 4.9,
-      'est': 'EST. 2015',
+      'name': 'Chocolate Chip Cookie',
+      'price': 2.50,
+      'image': 'assets/images/chocolate_cookie.jpg',
+      'isSpecial': true,
+      'type': 'sweet',
     },
   ];
+
+  final List<Map<String, dynamic>> _popularSweets = [
+    {
+      'name': 'Strawberry Cupcake',
+      'price': 4.00,
+      'image': 'assets/images/strawberry_cupcake.jpg',
+    },
+    {'name': 'Macaron', 'price': 3.00, 'image': 'assets/images/macaron.jpg'},
+    {
+      'name': 'Red Velvet Cookie',
+      'price': 2.80,
+      'image': 'assets/images/red_velvet_cookie.jpg',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _popularSavory = [
+    {
+      'name': 'Mini Quiche',
+      'price': 3.50,
+      'image': 'assets/images/mini_quiche.jpg',
+    },
+    {
+      'name': 'Sausage Roll',
+      'price': 3.20,
+      'image': 'assets/images/sausage_roll.jpg',
+    },
+    {
+      'name': 'Cheese Stick',
+      'price': 2.90,
+      'image': 'assets/images/cheese_stick.jpg',
+    },
+  ];
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
 
   @override
   void initState() {
@@ -137,258 +152,309 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: CustomScrollView(
-              slivers: [
-                // Custom App Bar
-                SliverAppBar(
-                  expandedHeight: 120,
-                  floating: true,
-                  pinned: true,
-                  backgroundColor: AppColors.background,
-                  elevation: 0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.primary.withOpacity(0.1),
-                            AppColors.background,
+        child: CustomScrollView(
+          slivers: [
+            // Header with greeting
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_getGreeting()}, $userName!',
+                          style: AppTheme.girlishHeadingStyle.copyWith(
+                            fontSize: 24,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: AppColors.primary,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              location,
+                              style: AppTheme.elegantBodyStyle.copyWith(
+                                fontSize: 14,
+                                color: AppColors.secondary.withOpacity(0.7),
+                              ),
+                            ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                  title: Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: Icon(
+                        Icons.person,
                         color: AppColors.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'New York',
-                        style: AppTheme.authTitleStyle.copyWith(
-                          fontSize: 18,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.shopping_bag_outlined,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          // Navigate to cart
-                        },
+                        size: 28,
                       ),
                     ),
                   ],
                 ),
+              ),
+            ),
 
-                // Main Content
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Today's Best Deals Section
-                        _buildSectionHeader('Today\'s best deals', () {}),
-                        const SizedBox(height: 16),
-                        _buildDealsSection(),
-                        const SizedBox(height: 32),
-
-                        // Discover by Category Section
-                        _buildSectionHeader('Discover by category', () {}),
-                        const SizedBox(height: 16),
-                        _buildCategoriesSection(),
-                        const SizedBox(height: 32),
-
-                        // Popular Bakery Section
-                        _buildSectionHeader('Popular bakery', () {}),
-                        const SizedBox(height: 16),
-                        _buildBakeriesSection(),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
+            // Hero Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.cardColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Sweet & Savory Treats\nDelivered to Your Doorstep',
+                                style: AppTheme.girlishHeadingStyle.copyWith(
+                                  fontSize: 22,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Order cupcakes, cookies, pies, and more. Fast, fresh, and fabulous delivery!',
+                                style: AppTheme.elegantBodyStyle.copyWith(
+                                  fontSize: 14,
+                                  color: AppColors.secondary.withOpacity(0.7),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Order Now',
+                                  style: AppTheme.buttonTextStyle.copyWith(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Lottie.asset(
+                            'assets/animations/Delivery.json',
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+
+            // Today's Specials
+            SliverToBoxAdapter(
+              child: _buildSectionHeader('Today\'s Specials', () {}),
+            ),
+            SliverToBoxAdapter(child: _buildSpecialsSection()),
+
+            // Categories
+            SliverToBoxAdapter(child: _buildSectionHeader('Categories', () {})),
+            SliverToBoxAdapter(child: _buildCategoriesSection()),
+
+            // Popular Sweets
+            SliverToBoxAdapter(
+              child: _buildSectionHeader('Popular Sweets', () {}),
+            ),
+            SliverToBoxAdapter(child: _buildPopularSection(_popularSweets)),
+
+            // Popular Savory
+            SliverToBoxAdapter(
+              child: _buildSectionHeader('Popular Savory', () {}),
+            ),
+            SliverToBoxAdapter(child: _buildPopularSection(_popularSavory)),
+
+            // Delivery Highlight
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Lottie.asset(
+                          'assets/animations/Delivery.json',
+                          height: 60,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            'Fast & Fresh Delivery!\nTrack your order in real-time and enjoy every bite.',
+                            style: AppTheme.elegantBodyStyle.copyWith(
+                              fontSize: 14,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(child: SizedBox(height: 32)),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildSectionHeader(String title, VoidCallback onAllPressed) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: AppTheme.girlishHeadingStyle.copyWith(
-            fontSize: 24,
-            color: AppColors.secondary,
-          ),
-        ),
-        TextButton(
-          onPressed: onAllPressed,
-          child: Text(
-            'All',
-            style: AppTheme.elegantBodyStyle.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: AppTheme.girlishHeadingStyle.copyWith(
+              fontSize: 20,
+              color: AppColors.secondary,
             ),
           ),
-        ),
-      ],
+          TextButton(
+            onPressed: onAllPressed,
+            child: Text(
+              'All',
+              style: AppTheme.elegantBodyStyle.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDealsSection() {
+  Widget _buildSpecialsSection() {
     return SizedBox(
-      height: 280,
+      height: 180,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _deals.length,
+        itemCount: _specials.length,
         itemBuilder: (context, index) {
-          final deal = _deals[index];
+          final item = _specials[index];
           return Container(
-            width: 200,
-            margin: const EdgeInsets.only(right: 16),
+            width: 160,
+            margin: const EdgeInsets.only(left: 16, right: 8, bottom: 8),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: AppColors.primary.withOpacity(0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image placeholder with favorite and cart icons
-                Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: AppColors.cardColor.withOpacity(0.3),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+                Expanded(
+                  child: Center(
+                    child: Icon(
+                      item['type'] == 'sweet' ? Icons.cake : Icons.lunch_dining,
+                      color: item['type'] == 'sweet'
+                          ? AppColors.primary
+                          : AppColors.cardColor,
+                      size: 48,
                     ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Icon(
-                          Icons.cake,
-                          size: 60,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: IconButton(
-                          icon: Icon(
-                            deal['isFavorite']
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: deal['isFavorite']
-                                ? AppColors.accent
-                                : AppColors.secondary,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              deal['isFavorite'] = !deal['isFavorite'];
-                            });
-                          },
-                        ),
-                      ),
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.shopping_cart_outlined,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              // Add to cart
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        deal['name'],
+                        item['name'],
                         style: AppTheme.elegantBodyStyle.copyWith(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.secondary,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        deal['bakery'],
-                        style: AppTheme.elegantBodyStyle.copyWith(
-                          fontSize: 14,
-                          color: AppColors.secondary.withOpacity(0.7),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Text(
-                            '\$${deal['price']}',
-                            style: AppTheme.elegantBodyStyle.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '\$${deal['originalPrice']}',
+                            '\$${item['price']}',
                             style: AppTheme.elegantBodyStyle.copyWith(
                               fontSize: 14,
-                              decoration: TextDecoration.lineThrough,
-                              color: AppColors.secondary.withOpacity(0.5),
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          if (item['isSpecial'])
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Special',
+                                style: AppTheme.elegantBodyStyle.copyWith(
+                                  fontSize: 10,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -412,7 +478,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
           final category = _categories[index];
           return Container(
             width: 80,
-            margin: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.only(left: 16, right: 8),
             child: Column(
               children: [
                 Container(
@@ -449,116 +515,61 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
     );
   }
 
-  Widget _buildBakeriesSection() {
-    return Column(
-      children: _bakeries.map((bakery) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Bakery logo placeholder
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
+  Widget _buildPopularSection(List<Map<String, dynamic>> items) {
+    return SizedBox(
+      height: 150,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Container(
+            width: 130,
+            margin: const EdgeInsets.only(left: 16, right: 8, bottom: 8),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-                child: Center(
-                  child: Icon(Icons.store, color: AppColors.primary, size: 30),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  items == _popularSweets ? Icons.cake : Icons.lunch_dining,
+                  color: items == _popularSweets
+                      ? AppColors.primary
+                      : AppColors.cardColor,
+                  size: 36,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      bakery['name'],
-                      style: AppTheme.elegantBodyStyle.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppColors.secondary.withOpacity(0.6),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          bakery['hours'],
-                          style: AppTheme.elegantBodyStyle.copyWith(
-                            fontSize: 12,
-                            color: AppColors.secondary.withOpacity(0.6),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.location_on,
-                          size: 14,
-                          color: AppColors.secondary.withOpacity(0.6),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          bakery['distance'],
-                          style: AppTheme.elegantBodyStyle.copyWith(
-                            fontSize: 12,
-                            color: AppColors.secondary.withOpacity(0.6),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.star, size: 16, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        bakery['rating'].toString(),
-                        style: AppTheme.elegantBodyStyle.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 8),
+                Text(
+                  item['name'],
+                  style: AppTheme.elegantBodyStyle.copyWith(
+                    fontSize: 13,
+                    color: AppColors.secondary,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    bakery['est'],
-                    style: AppTheme.elegantBodyStyle.copyWith(
-                      fontSize: 10,
-                      color: AppColors.secondary.withOpacity(0.5),
-                    ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '\$${item['price']}',
+                  style: AppTheme.elegantBodyStyle.copyWith(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

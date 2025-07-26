@@ -33,7 +33,7 @@ dependencies:
   flutter_riverpod: ^2.4.0
   isar: ^3.1.0
   isar_flutter_libs: ^3.1.0
-  appwrite: ^11.0.0
+  appwrite: ^17.0.2
   firebase_core: ^2.24.2
   firebase_messaging: ^14.7.10
   google_fonts: ^6.1.0
@@ -101,5 +101,5 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 dependency_overrides:
-  flutter_web_auth_2: 4.0.1
+  flutter_web_auth_2: 4.1.0
   

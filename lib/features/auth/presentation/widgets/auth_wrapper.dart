@@ -4,6 +4,8 @@ import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/loading_widget.dart';
+import '../../../common/presentation/screens/admin_nav_screen.dart';
+import '../../../common/presentation/screens/customer_nav_screen.dart';
 import '../providers/auth_provider.dart';
 import '../screens/login_screen.dart';
 
@@ -28,19 +30,11 @@ class AuthWrapper extends ConsumerWidget {
     if (authState.user == null) {
       return const LoginScreen();
     }
-    // Route based on user role - using placeholder for now
+    // Route based on user role
     if (authState.isAdmin) {
-      return Scaffold(
-        // Placeholder for AdminNavScreen
-        appBar: AppBar(title: const Text('Admin Dashboard')),
-        body: const Center(child: Text('Admin Dashboard - Coming Soon')),
-      );
+      return const AdminNavScreen();
     } else {
-      return Scaffold(
-        // Placeholder for CustomerNavScreen
-        appBar: AppBar(title: const Text('Customer Dashboard')),
-        body: const Center(child: Text('Customer Dashboard - Coming Soon')),
-      );
+      return const CustomerNavScreen();
     }
   }
 
