@@ -5,6 +5,9 @@ part 'cart_item_isar.g.dart';
 class CartItemIsar {
   Id id = Isar.autoIncrement;
   late int productId;
+  late String name;
+  late double price;
   late int quantity;
-  // Add more fields as needed
+  late String category;
+  late String imageUrl;
 }

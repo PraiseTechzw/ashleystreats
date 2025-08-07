@@ -5,12 +5,17 @@ part 'order_isar.g.dart';
 @Collection()
 class OrderIsar {
   Id id = Isar.autoIncrement;
-  late List<int> productIds; // Store product IDs in the order
-  late List<int> quantities; // Parallel list to productIds
-  late double total;
-  late String status; // e.g., Pending, Preparing, Delivered
-  late DateTime createdAt;
+  late String orderId;
+  late String userId;
+  late String customerName;
+  late String customerEmail;
+  late String customerPhone;
+  late List<dynamic> items; // Store order items as a list of maps
+  late double totalAmount;
+  late String status; // e.g., pending, confirmed, preparing, delivered, cancelled
   late String deliveryAddress;
-  late String phoneNumber;
-  late String deliveryTime; // Store as string for simplicity
+  late String paymentMethod;
+  late String specialInstructions;
+  late DateTime orderDate;
+  late DateTime estimatedDeliveryDate;
 }
