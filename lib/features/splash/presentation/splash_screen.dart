@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/loading_widget.dart';
+import '../../../core/services/data_seeding_service.dart';
 import 'providers/onboarding_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -72,6 +73,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _animationController.forward();
     await Future.delayed(const Duration(milliseconds: 800));
     _textAnimationController.forward();
+
+    // Initialize sample data while animations are running
+    try {
+      await DataSeedingService().seedSampleData();
+    } catch (e) {
+      print('Error seeding data: $e');
+    }
 
     // Wait for animations and then navigate
     await Future.delayed(const Duration(milliseconds: 2200));

@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.4.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -41,7 +41,8 @@ dependencies:
   cloud_firestore: ^4.17.5
   shared_preferences: ^2.2.2
   lottie: ^3.0.0
-  file_picker: ^10.2.0
+  file_picker: ^8.3.2
+  path_provider: ^2.1.2
   
 
 dev_dependencies:
@@ -53,7 +54,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^4.0.0
   build_runner: ^2.4.8
   isar_generator: ^3.1.0
 

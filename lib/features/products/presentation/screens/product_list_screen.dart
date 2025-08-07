@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../data/product_repository.dart';
-import '../../data/models/product_isar.dart';
-import 'product_detail_screen.dart';
 import 'package:lottie/lottie.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
@@ -17,8 +13,6 @@ class ProductListScreen extends ConsumerStatefulWidget {
 
 class _ProductListScreenState extends ConsumerState<ProductListScreen>
     with TickerProviderStateMixin {
-  final ProductRepository _repo = ProductRepository();
-  late Future<List<ProductIsar>> _productsFuture;
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
@@ -140,26 +134,24 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
   @override
   void initState() {
     super.initState();
-    _productsFuture = _repo.getAllProducts();
-
-    // Initialize animations
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
+
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-        );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
     // Start animations
     _fadeController.forward();
