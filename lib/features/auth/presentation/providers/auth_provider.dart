@@ -1,215 +1,203 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/user_entity.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 
-final authRepositoryProvider = Provider<AuthRepositoryImpl>((ref) {
-  return AuthRepositoryImpl();
-});
-
-enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
-
+// Auth State
 class AuthState {
-  final UserEntity? user;
-  final AuthStatus status;
-  final String? errorMessage;
+  final bool isAuthenticated;
   final bool isLoading;
+  final UserModel? user;
+  final String? error;
 
   const AuthState({
-    this.user,
-    this.status = AuthStatus.initial,
-    this.errorMessage,
+    this.isAuthenticated = false,
     this.isLoading = false,
+    this.user,
+    this.error,
   });
 
   AuthState copyWith({
-    UserEntity? user,
-    AuthStatus? status,
-    String? errorMessage,
+    bool? isAuthenticated,
     bool? isLoading,
+    UserModel? user,
+    String? error,
+    bool clearError = false,
   }) {
     return AuthState(
-      user: user ?? this.user,
-      status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isLoading: isLoading ?? this.isLoading,
+      user: user ?? this.user,
+      error: clearError ? null : (error ?? this.error),
     );
   }
-
-  bool get isAuthenticated =>
-      status == AuthStatus.authenticated && user != null;
-  bool get isAdmin => user?.role == 'admin';
 }
 
+// Auth Notifier
 class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthRepositoryImpl repository;
+  final AuthRepositoryImpl _authRepository;
 
-  AuthNotifier(this.repository) : super(const AuthState()) {
-    // Load current user on initialization
-    loadCurrentUser();
+  AuthNotifier(this._authRepository) : super(const AuthState()) {
+    _checkAuthStatus();
   }
 
-  Future<void> loadCurrentUser() async {
+  Future<void> _checkAuthStatus() async {
     try {
-      state = state.copyWith(status: AuthStatus.loading, isLoading: true);
-      final user = await repository.getCurrentUser();
+      state = state.copyWith(isLoading: true);
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+      final userEmail = prefs.getString('userEmail');
+      final userRole = prefs.getString('userRole');
 
-      if (user != null) {
+      if (userId != null && userEmail != null) {
+        final user = UserModel(
+          userId: userId,
+          email: userEmail,
+          role: userRole ?? 'customer',
+          displayName: prefs.getString('userName') ?? '',
+          phoneNumber: prefs.getString('userPhone') ?? '',
+          addresses: [],
+          preferences: {},
+          createdAt: DateTime.now(),
+          lastActive: DateTime.now(),
+        );
         state = state.copyWith(
+          isAuthenticated: true,
           user: user,
-          status: AuthStatus.authenticated,
           isLoading: false,
-          errorMessage: null,
         );
       } else {
-        state = state.copyWith(
-          status: AuthStatus.unauthenticated,
-          isLoading: false,
-          errorMessage: null,
-        );
+        state = state.copyWith(isLoading: false);
       }
     } catch (e) {
       state = state.copyWith(
-        status: AuthStatus.error,
         isLoading: false,
-        errorMessage: 'Failed to load user: ${e.toString()}',
+        error: 'Failed to check authentication status',
       );
     }
   }
 
-  Future<void> login(String email, String password) async {
+  Future<bool> login(String email, String password) async {
     try {
-      state = state.copyWith(
-        status: AuthStatus.loading,
-        isLoading: true,
-        errorMessage: null,
-      );
+      state = state.copyWith(isLoading: true, error: null);
 
-      final user = await repository.login(email: email, password: password);
-
-      if (user != null) {
-        state = state.copyWith(
-          user: user,
-          status: AuthStatus.authenticated,
-          isLoading: false,
-          errorMessage: null,
-        );
-      } else {
-        state = state.copyWith(
-          status: AuthStatus.error,
-          isLoading: false,
-          errorMessage: 'Login failed. Please try again.',
-        );
-      }
-    } catch (e) {
-      state = state.copyWith(
-        status: AuthStatus.error,
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
-      rethrow;
-    }
-  }
-
-  Future<void> register(
-    String email,
-    String password,
-    String displayName,
-    String phoneNumber,
-  ) async {
-    try {
-      state = state.copyWith(
-        status: AuthStatus.loading,
-        isLoading: true,
-        errorMessage: null,
-      );
-
-      final user = await repository.register(
+      final user = await _authRepository.login(
         email: email,
         password: password,
-        displayName: displayName,
-        phoneNumber: phoneNumber,
       );
 
       if (user != null) {
+        // Save user data to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', user.userId);
+        await prefs.setString('userEmail', user.email);
+        await prefs.setString('userRole', user.role);
+        await prefs.setString('userName', user.displayName);
+        await prefs.setString('userPhone', user.phoneNumber);
+
         state = state.copyWith(
-          user: user,
-          status: AuthStatus.authenticated,
+          isAuthenticated: true,
+          user: user as UserModel,
           isLoading: false,
-          errorMessage: null,
         );
+        return true;
       } else {
-        state = state.copyWith(
-          status: AuthStatus.error,
-          isLoading: false,
-          errorMessage: 'Registration failed. Please try again.',
-        );
+        state = state.copyWith(isLoading: false, error: 'Invalid credentials');
+        return false;
       }
     } catch (e) {
       state = state.copyWith(
-        status: AuthStatus.error,
         isLoading: false,
-        errorMessage: e.toString(),
+        error: 'Login failed: ${e.toString()}',
       );
-      rethrow;
+      return false;
+    }
+  }
+
+  Future<bool> register(
+    String email,
+    String password,
+    String name,
+    String phone,
+  ) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      final user = await _authRepository.register(
+        email: email,
+        password: password,
+        displayName: name,
+        phoneNumber: phone,
+      );
+
+      if (user != null) {
+        // Save user data to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', user.userId);
+        await prefs.setString('userEmail', user.email);
+        await prefs.setString('userRole', user.role);
+        await prefs.setString('userName', user.displayName);
+        await prefs.setString('userPhone', user.phoneNumber);
+
+        state = state.copyWith(
+          isAuthenticated: true,
+          user: user as UserModel,
+          isLoading: false,
+        );
+        return true;
+      } else {
+        state = state.copyWith(isLoading: false, error: 'Registration failed');
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Registration failed: ${e.toString()}',
+      );
+      return false;
     }
   }
 
   Future<void> logout() async {
     try {
-      state = state.copyWith(status: AuthStatus.loading, isLoading: true);
+      state = state.copyWith(isLoading: true);
 
-      await repository.logout();
+      // Clear user data from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userId');
+      await prefs.remove('userEmail');
+      await prefs.remove('userRole');
+      await prefs.remove('userName');
+      await prefs.remove('userPhone');
 
       state = state.copyWith(
+        isAuthenticated: false,
         user: null,
-        status: AuthStatus.unauthenticated,
         isLoading: false,
-        errorMessage: null,
+        error: null,
       );
     } catch (e) {
       state = state.copyWith(
-        status: AuthStatus.error,
         isLoading: false,
-        errorMessage: 'Logout failed: ${e.toString()}',
+        error: 'Logout failed: ${e.toString()}',
       );
     }
   }
 
   void clearError() {
-    state = state.copyWith(errorMessage: null);
+    state = state.copyWith(clearError: true);
   }
 
-  void updateUser(UserEntity user) {
-    state = state.copyWith(user: user);
-  }
+  bool get isAdmin => state.user?.role == 'admin';
+  bool get isCustomer => state.user?.role == 'customer';
 }
 
-final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final repo = ref.watch(authRepositoryProvider);
-  return AuthNotifier(repo);
+// Providers
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final authRepository = AuthRepositoryImpl();
+  return AuthNotifier(authRepository);
 });
 
-// Convenience providers
-final authUserProvider = Provider<UserEntity?>((ref) {
-  return ref.watch(authStateProvider).user;
-});
-
-final authStatusProvider = Provider<AuthStatus>((ref) {
-  return ref.watch(authStateProvider).status;
-});
-
-final isAuthenticatedProvider = Provider<bool>((ref) {
-  return ref.watch(authStateProvider).isAuthenticated;
-});
-
-final isAdminProvider = Provider<bool>((ref) {
-  return ref.watch(authStateProvider).isAdmin;
-});
-
-final authLoadingProvider = Provider<bool>((ref) {
-  return ref.watch(authStateProvider).isLoading;
-});
-
-final authErrorProvider = Provider<String?>((ref) {
-  return ref.watch(authStateProvider).errorMessage;
+final authNotifierProvider = Provider<AuthNotifier>((ref) {
+  return ref.read(authProvider.notifier);
 });

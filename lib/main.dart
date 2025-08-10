@@ -11,6 +11,7 @@ import 'features/auth/presentation/screens/logout_button.dart';
 import 'features/auth/presentation/widgets/auth_wrapper.dart';
 import 'features/splash/presentation/splash_screen.dart';
 import 'features/splash/presentation/onboarding_screen.dart';
+import 'features/splash/presentation/providers/onboarding_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
