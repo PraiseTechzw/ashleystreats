@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../products/presentation/screens/product_list_screen.dart';
 import '../../../cart/presentation/screens/cart_screen.dart';
 import '../../../orders/presentation/screens/order_history_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class CustomerNavScreen extends ConsumerStatefulWidget {
-  const CustomerNavScreen({Key? key}) : super(key: key);
+  const CustomerNavScreen({super.key});
 
   @override
   ConsumerState<CustomerNavScreen> createState() => _CustomerNavScreenState();
@@ -22,11 +24,11 @@ class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
   late Animation<double> _scaleAnimation;
 
   static final List<Widget> _screens = [
-    const ProductListScreen(), // Home
-    const SearchScreen(), // Search
-    const OrderHistoryScreen(), // Orders
-    const CartScreen(), // Cart
-    const ProfileScreen(), // Profile
+    const ProductListScreen(),
+    const SearchScreen(),
+    const OrderHistoryScreen(),
+    const CartScreen(),
+    const ProfileScreen(),
   ];
 
   static final List<Map<String, dynamic>> _navItems = [
@@ -41,9 +43,9 @@ class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
       'activeIcon': Icons.search_rounded,
     },
     {
-      'icon': Icons.favorite_border_rounded,
+      'icon': Icons.receipt_long_outlined,
       'label': 'Orders',
-      'activeIcon': Icons.favorite_rounded,
+      'activeIcon': Icons.receipt_long_rounded,
     },
     {
       'icon': Icons.shopping_bag_outlined,
@@ -86,8 +88,32 @@ class _CustomerNavScreenState extends ConsumerState<CustomerNavScreen>
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Ashley\'s Treats',
+          style: AppTheme.girlishHeadingStyle.copyWith(
+            fontSize: 24,
+            color: AppColors.primary,
+          ),
+        ),
+        actions: [
+          // User Avatar
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: CircleAvatar(
+              backgroundColor: AppColors.primary.withOpacity(0.1),
+              child: Icon(Icons.person, color: AppColors.primary, size: 24),
+            ),
+          ),
+        ],
+      ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (Widget child, Animation<double> animation) {

@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/loading_widget.dart';
+import '../providers/auth_provider.dart';
 import '../../../common/presentation/screens/admin_nav_screen.dart';
 import '../../../common/presentation/screens/customer_nav_screen.dart';
-import '../providers/auth_provider.dart';
 import '../screens/login_screen.dart';
 
 class AuthWrapper extends ConsumerWidget {
@@ -14,152 +13,33 @@ class AuthWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final authStatus = authState.status;
+    final authState = ref.watch(authProvider);
 
-    return switch (authStatus) {
-      AuthStatus.initial => const AuthLoadingScreen(),
-      AuthStatus.loading => const AuthLoadingScreen(),
-      AuthStatus.authenticated => _buildAuthenticatedScreen(authState),
-      AuthStatus.unauthenticated => const LoginScreen(),
-      AuthStatus.error => _buildErrorScreen(context, ref, authState),
-    };
-  }
-
-  Widget _buildAuthenticatedScreen(AuthState authState) {
-    if (authState.user == null) {
-      return const LoginScreen();
+    if (authState.isLoading) {
+      return const AuthLoadingScreen();
     }
-    // Route based on user role
-    if (authState.isAdmin) {
-      return const AdminNavScreen();
-    } else {
-      return const CustomerNavScreen();
+
+    if (authState.isAuthenticated && authState.user != null) {
+      // Route based on user role
+      if (authState.isAdmin) {
+        return const AdminNavScreen();
+      } else {
+        return const CustomerNavScreen();
+      }
     }
-  }
 
-  Widget _buildErrorScreen(
-    BuildContext context,
-    WidgetRef ref,
-    AuthState authState,
-  ) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.background,
-              AppColors.cardColor.withOpacity(0.3),
-              AppColors.background,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Error Icon
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(60),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accent.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.error_outline,
-                      size: 60,
-                      color: AppColors.accent,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Error Title
-                  Text(
-                    'Oops! Something went wrong',
-                    style: AppTheme.girlishHeadingStyle.copyWith(
-                      fontSize: 28,
-                      color: AppColors.accent,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Error Message
-                  Text(
-                    authState.errorMessage ??
-                        'An unexpected error occurred. Please try again.',
-                    style: AppTheme.elegantBodyStyle.copyWith(
-                      fontSize: 16,
-                      color: AppColors.secondary.withOpacity(0.8),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Action Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            ref.read(authStateProvider.notifier).clearError();
-                          },
-                          child: Text(
-                            'Try Again',
-                            style: AppTheme.buttonTextStyle.copyWith(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ref.read(authStateProvider.notifier).clearError();
-                            Navigator.of(
-                              context,
-                            ).pushReplacementNamed('/login');
-                          },
-                          child: Text(
-                            'Go to Login',
-                            style: AppTheme.buttonTextStyle.copyWith(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    // Show login screen if not authenticated
+    return const LoginScreen();
   }
 }
 
 class AuthLoadingScreen extends StatelessWidget {
-  const AuthLoadingScreen({Key? key}) : super(key: key);
+  const AuthLoadingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -215,11 +95,21 @@ class AuthLoadingScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Loading Animation
-                LoadingWidget(
-                  type: LoadingType.loading,
-                  size: 60,
-                  message: 'Checking authentication...',
-                  showMessage: true,
+                Lottie.asset(
+                  'assets/animations/loading.json',
+                  width: 60,
+                  height: 60,
+                  repeat: true,
+                  animate: true,
+                ),
+                const SizedBox(height: 16),
+
+                Text(
+                  'Checking authentication...',
+                  style: AppTheme.elegantBodyStyle.copyWith(
+                    fontSize: 16,
+                    color: AppColors.secondary.withOpacity(0.7),
+                  ),
                 ),
               ],
             ),
@@ -234,14 +124,17 @@ class AuthGuard extends ConsumerWidget {
   final Widget child;
   final bool requireAdmin;
 
-  const AuthGuard({Key? key, required this.child, this.requireAdmin = false})
-    : super(key: key);
+  const AuthGuard({
+    super.key,
+    required this.child,
+    this.requireAdmin = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
+    final authState = ref.watch(authProvider);
 
-    if (authState.status == AuthStatus.loading) {
+    if (authState.isLoading) {
       return const AuthLoadingScreen();
     }
 
@@ -258,6 +151,7 @@ class AuthGuard extends ConsumerWidget {
 
   Widget _buildAccessDeniedScreen(BuildContext context, String message) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

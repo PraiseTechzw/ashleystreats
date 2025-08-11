@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/product_repository.dart';
 import '../../data/models/product_isar.dart';
 import 'product_detail_screen.dart';
-import 'package:lottie/lottie.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
-  const ProductListScreen({Key? key}) : super(key: key);
+  const ProductListScreen({super.key});
 
   @override
   ConsumerState<ProductListScreen> createState() => _ProductListScreenState();
@@ -25,12 +24,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
   late Animation<Offset> _slideAnimation;
 
   // Mock user data
-  final String userName =
-      'Ashley'; // Replace with actual user name if available
-  final String location =
-      'New York'; // Replace with actual location if available
+  final String userName = 'Ashley';
+  final String location = 'New York';
 
-  // Categories from Ashley's Treats
+  // Categories
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Cupcakes', 'icon': Icons.cake, 'color': AppColors.primary},
     {
@@ -59,75 +56,36 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
     {
       'name': 'Rainbow Cupcake',
       'price': 4.50,
-      'image': 'assets/images/cupcakes_deal.jpg',
-      'isSpecial': true,
       'type': 'cupcake',
+      'isSpecial': true,
     },
     {
       'name': 'Chocolate Brownie',
       'price': 4.00,
-      'image': 'assets/images/chocolate_brownie.jpg',
-      'isSpecial': true,
       'type': 'brownie',
+      'isSpecial': true,
     },
     {
       'name': 'Vanilla Cake Slice',
       'price': 5.00,
-      'image': 'assets/images/vanilla_slice.jpg',
-      'isSpecial': true,
       'type': 'cake',
+      'isSpecial': true,
     },
   ];
 
   final List<Map<String, dynamic>> _popularSweets = [
-    {
-      'name': 'Chocolate Cupcake',
-      'price': 4.50,
-      'image': 'assets/images/chocolate_cupcake.jpg',
-    },
-    {
-      'name': 'Vanilla Cake Slice',
-      'price': 5.00,
-      'image': 'assets/images/vanilla_slice.jpg',
-    },
-    {
-      'name': 'Red Velvet Cake Pop',
-      'price': 3.50,
-      'image': 'assets/images/red_velvet_pop.jpg',
-    },
-    {
-      'name': 'Chocolate Chip Cookie',
-      'price': 2.80,
-      'image': 'assets/images/chocolate_cookie.jpg',
-    },
-    {
-      'name': 'Glazed Donut',
-      'price': 3.20,
-      'image': 'assets/images/glazed_donut.jpg',
-    },
+    {'name': 'Chocolate Cupcake', 'price': 4.50, 'type': 'sweet'},
+    {'name': 'Vanilla Cake Slice', 'price': 5.00, 'type': 'cake'},
+    {'name': 'Red Velvet Cake Pop', 'price': 3.50, 'type': 'cake'},
+    {'name': 'Chocolate Chip Cookie', 'price': 2.80, 'type': 'cookie'},
+    {'name': 'Glazed Donut', 'price': 3.20, 'type': 'donut'},
   ];
 
   final List<Map<String, dynamic>> _popularSavory = [
-    {
-      'name': 'Blueberry Muffin',
-      'price': 3.50,
-      'image': 'assets/images/blueberry_muffin.jpg',
-    },
-    {
-      'name': 'Chocolate Brownie',
-      'price': 4.00,
-      'image': 'assets/images/chocolate_brownie.jpg',
-    },
-    {
-      'name': 'Carrot Cake Slice',
-      'price': 5.50,
-      'image': 'assets/images/carrot_cake.jpg',
-    },
-    {
-      'name': 'Strawberry Cake Taster',
-      'price': 2.50,
-      'image': 'assets/images/strawberry_taster.jpg',
-    },
+    {'name': 'Blueberry Muffin', 'price': 3.50, 'type': 'muffin'},
+    {'name': 'Chocolate Brownie', 'price': 4.00, 'type': 'brownie'},
+    {'name': 'Carrot Cake Slice', 'price': 5.50, 'type': 'cake'},
+    {'name': 'Strawberry Cake Taster', 'price': 2.50, 'type': 'cake'},
   ];
 
   String _getGreeting() {
@@ -269,7 +227,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
                               ),
                               const SizedBox(height: 16),
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  // TODO: Navigate to full menu
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
@@ -429,10 +389,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
                 Expanded(
                   child: Center(
                     child: Icon(
-                      item['type'] == 'sweet' ? Icons.cake : Icons.lunch_dining,
-                      color: item['type'] == 'sweet'
-                          ? AppColors.primary
-                          : AppColors.cardColor,
+                      item['type'] == 'cupcake'
+                          ? Icons.cake
+                          : Icons.cake_outlined,
+                      color: AppColors.primary,
                       size: 48,
                     ),
                   ),
@@ -567,7 +527,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  items == _popularSweets ? Icons.cake : Icons.lunch_dining,
+                  items == _popularSweets ? Icons.cake : Icons.cake_outlined,
                   color: items == _popularSweets
                       ? AppColors.primary
                       : AppColors.cardColor,

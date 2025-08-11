@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../admin/presentation/screens/admin_dashboard_screen.dart';
@@ -7,7 +8,7 @@ import '../../../admin/presentation/screens/admin_product_management_screen.dart
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class AdminNavScreen extends ConsumerStatefulWidget {
-  const AdminNavScreen({Key? key}) : super(key: key);
+  const AdminNavScreen({super.key});
 
   @override
   ConsumerState<AdminNavScreen> createState() => _AdminNavScreenState();
@@ -79,6 +80,9 @@ class _AdminNavScreenState extends ConsumerState<AdminNavScreen>
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -93,18 +97,28 @@ class _AdminNavScreenState extends ConsumerState<AdminNavScreen>
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.secondary),
         actions: [
+          // User Info
           Container(
             margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              onPressed: () {
-                // Handle logout
-                ref.read(authStateProvider.notifier).logout();
-              },
+            child: Row(
+              children: [
+                Text(
+                  user?.displayName ?? 'Admin',
+                  style: AppTheme.elegantBodyStyle.copyWith(
+                    fontSize: 14,
+                    color: AppColors.secondary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: Icon(
+                    Icons.admin_panel_settings,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -231,7 +245,7 @@ class _AdminNavScreenState extends ConsumerState<AdminNavScreen>
                       ),
                     ),
                     onTap: () {
-                      ref.read(authStateProvider.notifier).logout();
+                      ref.read(authProvider.notifier).logout();
                       Navigator.pop(context);
                     },
                   ),

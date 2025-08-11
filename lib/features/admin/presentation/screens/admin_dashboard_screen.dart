@@ -1,206 +1,479 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../orders/data/order_repository.dart';
-import '../../../orders/data/models/order_isar.dart';
 
-class AdminDashboardScreen extends ConsumerStatefulWidget {
-  const AdminDashboardScreen({Key? key}) : super(key: key);
+class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
 
   @override
-  ConsumerState<AdminDashboardScreen> createState() =>
-      _AdminDashboardScreenState();
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
-    with TickerProviderStateMixin {
-  final OrderRepository _orderRepo = OrderRepository();
-  late Future<List<OrderIsar>> _ordersFuture;
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  // Mock data for dashboard
+  final Map<String, dynamic> _stats = {
+    'totalOrders': 156,
+    'pendingOrders': 23,
+    'totalRevenue': 2847.50,
+    'activeProducts': 45,
+  };
 
-  @override
-  void initState() {
-    super.initState();
-    _ordersFuture = _orderRepo.getAllOrders();
+  final List<Map<String, dynamic>> _recentOrders = [
+    {
+      'orderNo': '1001',
+      'customer': 'John Doe',
+      'amount': 18.50,
+      'status': 'Pending',
+      'time': '2 min ago',
+    },
+    {
+      'orderNo': '1000',
+      'customer': 'Jane Smith',
+      'amount': 24.00,
+      'status': 'In Progress',
+      'time': '15 min ago',
+    },
+    {
+      'orderNo': '0999',
+      'customer': 'Mike Johnson',
+      'amount': 12.50,
+      'status': 'Completed',
+      'time': '1 hour ago',
+    },
+  ];
 
-    // Initialize animations
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
+  final List<Map<String, dynamic>> _topProducts = [
+    {'name': 'Rainbow Cupcake', 'sales': 89, 'revenue': 400.50},
+    {'name': 'Chocolate Brownie', 'sales': 67, 'revenue': 268.00},
+    {'name': 'Vanilla Cake Slice', 'sales': 54, 'revenue': 270.00},
+    {'name': 'Chocolate Chip Cookie', 'sales': 123, 'revenue': 307.50},
+  ];
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-        );
-
-    // Start animations
-    _fadeController.forward();
-    _slideController.forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    _slideController.dispose();
-    super.dispose();
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'in progress':
+        return AppColors.primary;
+      case 'completed':
+        return Colors.green;
+      default:
+        return AppColors.secondary;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: FutureBuilder<List<OrderIsar>>(
-            future: _ordersFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: AppColors.primary),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Loading dashboard...',
-                        style: AppTheme.elegantBodyStyle.copyWith(
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.receipt_long,
-                        size: 80,
-                        color: AppColors.primary.withOpacity(0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No orders found',
-                        style: AppTheme.girlishHeadingStyle.copyWith(
-                          fontSize: 24,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Orders will appear here once customers start placing them',
-                        style: AppTheme.elegantBodyStyle.copyWith(
-                          fontSize: 16,
-                          color: AppColors.secondary.withOpacity(0.6),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              final orders = snapshot.data!;
-              final today = DateTime.now();
-              final ordersToday = orders
-                  .where(
-                    (o) =>
-                        o.createdAt.year == today.year &&
-                        o.createdAt.month == today.month &&
-                        o.createdAt.day == today.day,
-                  )
-                  .toList();
-              final revenueToday = ordersToday.fold<double>(
-                0.0,
-                (sum, o) => sum + o.total,
-              );
-
-              return CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Dashboard Title
-                          Text(
-                            'Dashboard Overview',
-                            style: AppTheme.girlishHeadingStyle.copyWith(
-                              fontSize: 28,
-                              color: AppColors.secondary,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Stats Cards
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildStatCard(
-                                  'Orders Today',
-                                  '${ordersToday.length}',
-                                  Icons.shopping_cart,
-                                  AppColors.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildStatCard(
-                                  'Revenue Today',
-                                  '\$${revenueToday.toStringAsFixed(2)}',
-                                  Icons.attach_money,
-                                  AppColors.accent,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Recent Orders Title
-                          Text(
-                            'Recent Orders',
-                            style: AppTheme.girlishHeadingStyle.copyWith(
-                              fontSize: 24,
-                              color: AppColors.secondary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primary.withOpacity(0.1),
+                    AppColors.cardColor.withOpacity(0.3),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Icon(
+                      Icons.admin_panel_settings,
+                      color: Colors.white,
+                      size: 30,
                     ),
                   ),
-
-                  // Orders List
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final order = orders[index];
-                      return _buildOrderCard(order);
-                    }, childCount: orders.length),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome back, Admin!',
+                          style: AppTheme.girlishHeadingStyle.copyWith(
+                            fontSize: 20,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Here\'s what\'s happening with your bakery today',
+                          style: AppTheme.elegantBodyStyle.copyWith(
+                            fontSize: 14,
+                            color: AppColors.secondary.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              );
-            },
-          ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Stats Grid
+            Text(
+              'Overview',
+              style: AppTheme.girlishHeadingStyle.copyWith(
+                fontSize: 20,
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.2,
+              children: [
+                _buildStatCard(
+                  'Total Orders',
+                  '${_stats['totalOrders']}',
+                  Icons.receipt_long,
+                  AppColors.primary,
+                ),
+                _buildStatCard(
+                  'Pending Orders',
+                  '${_stats['pendingOrders']}',
+                  Icons.schedule,
+                  Colors.orange,
+                ),
+                _buildStatCard(
+                  'Total Revenue',
+                  '\$${_stats['totalRevenue'].toStringAsFixed(0)}',
+                  Icons.attach_money,
+                  Colors.green,
+                ),
+                _buildStatCard(
+                  'Active Products',
+                  '${_stats['activeProducts']}',
+                  Icons.inventory_2,
+                  AppColors.accent,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Recent Orders
+            Text(
+              'Recent Orders',
+              style: AppTheme.girlishHeadingStyle.copyWith(
+                fontSize: 20,
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _recentOrders.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final order = _recentOrders[index];
+                  return ListTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _statusColor(order['status']).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        Icons.receipt_long,
+                        color: _statusColor(order['status']),
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      'Order #${order['orderNo']}',
+                      style: AppTheme.elegantBodyStyle.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${order['customer']} • ${order['time']}',
+                      style: AppTheme.elegantBodyStyle.copyWith(
+                        fontSize: 14,
+                        color: AppColors.secondary.withOpacity(0.7),
+                      ),
+                    ),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '\$${order['amount'].toStringAsFixed(2)}',
+                          style: AppTheme.elegantBodyStyle.copyWith(
+                            fontSize: 16,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _statusColor(
+                              order['status'],
+                            ).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            order['status'],
+                            style: AppTheme.elegantBodyStyle.copyWith(
+                              fontSize: 12,
+                              color: _statusColor(order['status']),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      // TODO: Navigate to order details
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Top Products
+            Text(
+              'Top Products',
+              style: AppTheme.girlishHeadingStyle.copyWith(
+                fontSize: 20,
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _topProducts.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final product = _topProducts[index];
+                  return ListTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        Icons.cake,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      product['name'],
+                      style: AppTheme.elegantBodyStyle.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${product['sales']} sales',
+                      style: AppTheme.elegantBodyStyle.copyWith(
+                        fontSize: 14,
+                        color: AppColors.secondary.withOpacity(0.7),
+                      ),
+                    ),
+                    trailing: Text(
+                      '\$${product['revenue'].toStringAsFixed(2)}',
+                      style: AppTheme.elegantBodyStyle.copyWith(
+                        fontSize: 16,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () {
+                      // TODO: Navigate to product details
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Quick Actions
+            Text(
+              'Quick Actions',
+              style: AppTheme.girlishHeadingStyle.copyWith(
+                fontSize: 20,
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    'Add Product',
+                    Icons.add_circle_outline,
+                    AppColors.primary,
+                    () {
+                      // TODO: Navigate to add product
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionCard(
+                    'View Orders',
+                    Icons.list_alt,
+                    AppColors.accent,
+                    () {
+                      // TODO: Navigate to orders
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    'Analytics',
+                    Icons.analytics,
+                    AppColors.secondary,
+                    () {
+                      // TODO: Navigate to analytics
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionCard(
+                    'Settings',
+                    Icons.settings,
+                    AppColors.cardColor,
+                    () {
+                      // TODO: Navigate to settings
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Delivery Status
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.cardColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Lottie.asset(
+                    'assets/animations/Delivery.json',
+                    width: 60,
+                    height: 60,
+                    repeat: true,
+                    animate: true,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Delivery Status',
+                          style: AppTheme.elegantBodyStyle.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${_stats['pendingOrders']} orders ready for delivery',
+                          style: AppTheme.elegantBodyStyle.copyWith(
+                            fontSize: 14,
+                            color: AppColors.secondary.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      // TODO: Navigate to delivery management
+                    },
+                    icon: Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -213,32 +486,29 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(height: 12),
           Text(
@@ -246,151 +516,66 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             style: AppTheme.girlishHeadingStyle.copyWith(
               fontSize: 24,
               color: color,
-              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
             title,
             style: AppTheme.elegantBodyStyle.copyWith(
-              fontSize: 14,
+              fontSize: 12,
               color: AppColors.secondary.withOpacity(0.7),
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOrderCard(OrderIsar order) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: _getStatusColor(order.status).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            _getStatusIcon(order.status),
-            color: _getStatusColor(order.status),
-            size: 24,
-          ),
-        ),
-        title: Text(
-          'Order #${order.id}',
-          style: AppTheme.elegantBodyStyle.copyWith(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              'Status: ${order.status}',
-              style: AppTheme.elegantBodyStyle.copyWith(
-                fontSize: 14,
-                color: _getStatusColor(order.status),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Total: \$${order.total.toStringAsFixed(2)}',
-              style: AppTheme.elegantBodyStyle.copyWith(
-                fontSize: 14,
-                color: AppColors.secondary.withOpacity(0.7),
-              ),
+  Widget _buildActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
-        trailing: order.status != 'Completed'
-            ? ElevatedButton(
-                onPressed: () async {
-                  order.status = 'Completed';
-                  await _orderRepo.addOrder(order);
-                  setState(() {
-                    _ordersFuture = _orderRepo.getAllOrders();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'Complete',
-                  style: AppTheme.buttonTextStyle.copyWith(fontSize: 12),
-                ),
-              )
-            : Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Completed',
-                      style: AppTheme.elegantBodyStyle.copyWith(
-                        fontSize: 12,
-                        color: Colors.green,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+        child: Column(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
               ),
+              child: Icon(icon, color: color, size: 30),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: AppTheme.elegantBodyStyle.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.secondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return AppColors.primary;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Icons.check_circle;
-      case 'pending':
-        return Icons.schedule;
-      case 'cancelled':
-        return Icons.cancel;
-      default:
-        return Icons.receipt;
-    }
   }
 }

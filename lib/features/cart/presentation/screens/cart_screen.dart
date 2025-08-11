@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
-import 'package:lottie/lottie.dart';
+import '../screens/checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key? key}) : super(key: key);
+  const CartScreen({super.key});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -16,13 +17,23 @@ class _CartScreenState extends State<CartScreen> {
 
   // Mock cart data
   final List<Map<String, dynamic>> _mockCart = [
-    {'name': 'Rainbow Cupcake', 'price': 4.50, 'quantity': 2, 'type': 'sweet'},
-    {'name': 'Cheese Pie', 'price': 5.00, 'quantity': 1, 'type': 'savory'},
+    {
+      'name': 'Rainbow Cupcake',
+      'price': 4.50,
+      'quantity': 2,
+      'type': 'cupcake',
+    },
+    {
+      'name': 'Chocolate Brownie',
+      'price': 4.00,
+      'quantity': 1,
+      'type': 'brownie',
+    },
     {
       'name': 'Chocolate Chip Cookie',
       'price': 2.50,
       'quantity': 3,
-      'type': 'sweet',
+      'type': 'cookie',
     },
   ];
 
@@ -100,6 +111,17 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate back to products
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'Start Shopping',
+                      style: AppTheme.buttonTextStyle,
+                    ),
+                  ),
                 ],
               ),
             )
@@ -125,14 +147,18 @@ class _CartScreenState extends State<CartScreen> {
                           ],
                         ),
                         child: ListTile(
-                          leading: Icon(
-                            item['type'] == 'sweet'
-                                ? Icons.cake
-                                : Icons.lunch_dining,
-                            color: item['type'] == 'sweet'
-                                ? AppColors.primary
-                                : AppColors.cardColor,
-                            size: 32,
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Icon(
+                              _getIconForType(item['type']),
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
                           ),
                           title: Text(
                             item['name'],
@@ -214,7 +240,17 @@ class _CartScreenState extends State<CartScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _cart.isEmpty ? null : () {},
+                          onPressed: _cart.isEmpty
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CheckoutScreen(),
+                                    ),
+                                  );
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -266,5 +302,24 @@ class _CartScreenState extends State<CartScreen> {
         ],
       ),
     );
+  }
+
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'cupcake':
+        return Icons.cake;
+      case 'brownie':
+        return Icons.square;
+      case 'cookie':
+        return Icons.cookie;
+      case 'cake':
+        return Icons.cake_outlined;
+      case 'donut':
+        return Icons.circle;
+      case 'muffin':
+        return Icons.cake_rounded;
+      default:
+        return Icons.cake;
+    }
   }
 }
