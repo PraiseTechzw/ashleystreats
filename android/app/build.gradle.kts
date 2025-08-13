@@ -45,3 +45,11 @@ android {
 flutter {
     source = "../.."
 }
+
+// Fix for isar_flutter_libs namespace issue
+configurations.all {
+    resolutionStrategy {
+        force("androidx.core:core:1.12.0")
+        force("androidx.appcompat:appcompat:1.6.1")
+    }
+}
