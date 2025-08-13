@@ -255,7 +255,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '${order['date'].toString().substring(0, 10)}',
+                                order['date'].toString().substring(0, 10),
                                 style: AppTheme.elegantBodyStyle.copyWith(
                                   fontSize: 14,
                                   color: AppColors.secondary.withOpacity(0.7),

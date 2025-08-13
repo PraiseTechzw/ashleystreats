@@ -6,10 +6,10 @@ class ConfettiCelebration extends StatefulWidget {
   final Duration duration;
 
   const ConfettiCelebration({
-    Key? key,
+    super.key,
     this.onComplete,
     this.duration = const Duration(seconds: 3),
-  }) : super(key: key);
+  });
 
   @override
   State<ConfettiCelebration> createState() => _ConfettiCelebrationState();

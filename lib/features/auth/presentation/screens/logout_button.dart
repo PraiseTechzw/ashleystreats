@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../providers/auth_provider.dart';
 
@@ -11,15 +10,15 @@ class LogoutButton extends ConsumerWidget {
   final String? customText;
 
   const LogoutButton({
-    Key? key,
+    super.key,
     this.onLogoutComplete,
     this.showIcon = true,
     this.customText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoading = ref.watch(authLoadingProvider);
+    final isLoading = ref.watch(authProvider.select((state) => state.isLoading));
 
     return PopupMenuButton<String>(
       onSelected: (value) async {
@@ -48,9 +47,9 @@ class LogoutButton extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.accent.withOpacity(0.1),
+          color: AppColors.accent.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+          border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -78,7 +77,7 @@ class LogoutButton extends ConsumerWidget {
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     try {
-      await ref.read(authStateProvider.notifier).logout();
+      await ref.read(authProvider.notifier).logout();
 
       if (context.mounted) {
         // Show success message
@@ -122,11 +121,11 @@ class LogoutButton extends ConsumerWidget {
 class SimpleLogoutButton extends ConsumerWidget {
   final VoidCallback? onLogoutComplete;
 
-  const SimpleLogoutButton({Key? key, this.onLogoutComplete}) : super(key: key);
+  const SimpleLogoutButton({super.key, this.onLogoutComplete});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoading = ref.watch(authLoadingProvider);
+    final isLoading = ref.watch(authProvider.select((state) => state.isLoading));
 
     return IconButton(
       onPressed: isLoading ? null : () => _handleLogout(context, ref),
@@ -139,7 +138,7 @@ class SimpleLogoutButton extends ConsumerWidget {
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     try {
-      await ref.read(authStateProvider.notifier).logout();
+      await ref.read(authProvider.notifier).logout();
 
       if (context.mounted) {
         Navigator.of(

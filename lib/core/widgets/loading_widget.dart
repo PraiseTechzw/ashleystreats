@@ -13,13 +13,13 @@ class LoadingWidget extends StatelessWidget {
   final bool showMessage;
 
   const LoadingWidget({
-    Key? key,
+    super.key,
     this.type = LoadingType.loading,
     this.size,
     this.message,
     this.color,
     this.showMessage = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +79,11 @@ class FullScreenLoading extends StatelessWidget {
   final Color? backgroundColor;
 
   const FullScreenLoading({
-    Key? key,
+    super.key,
     this.type = LoadingType.loading,
     this.message,
     this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,11 +121,11 @@ class OverlayLoading extends StatelessWidget {
   final bool isVisible;
 
   const OverlayLoading({
-    Key? key,
+    super.key,
     this.type = LoadingType.loading,
     this.message,
     this.isVisible = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -164,8 +164,7 @@ class SmallLoading extends StatelessWidget {
   final LoadingType type;
   final double? size;
 
-  const SmallLoading({Key? key, this.type = LoadingType.loading, this.size})
-    : super(key: key);
+  const SmallLoading({super.key, this.type = LoadingType.loading, this.size});
 
   @override
   Widget build(BuildContext context) {

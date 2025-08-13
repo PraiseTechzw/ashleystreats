@@ -271,7 +271,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
             // Action Buttons
             if (order['status'].toLowerCase() == 'pending')
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
@@ -300,7 +300,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
 
             if (order['status'].toLowerCase() == 'delivered')
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {

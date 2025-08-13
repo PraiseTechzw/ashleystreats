@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/app_colors.dart';
 import 'services/isar/isar_service.dart';
 import 'services/firebase/firebase_service.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
-import 'features/auth/presentation/providers/auth_provider.dart';
-import 'features/auth/presentation/screens/logout_button.dart';
 import 'features/auth/presentation/widgets/auth_wrapper.dart';
 import 'features/splash/presentation/splash_screen.dart';
 import 'features/splash/presentation/onboarding_screen.dart';
-import 'features/splash/presentation/providers/onboarding_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +19,7 @@ void main() async {
 }
 
 class AshleyTreatsApp extends ConsumerWidget {
-  const AshleyTreatsApp({Key? key}) : super(key: key);
+  const AshleyTreatsApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

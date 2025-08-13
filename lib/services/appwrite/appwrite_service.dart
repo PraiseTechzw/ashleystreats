@@ -1,6 +1,4 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart';
-import 'dart:io';
 import 'dart:typed_data';
 
 class AppwriteService {

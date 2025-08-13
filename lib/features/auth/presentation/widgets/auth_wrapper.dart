@@ -21,7 +21,7 @@ class AuthWrapper extends ConsumerWidget {
 
     if (authState.isAuthenticated && authState.user != null) {
       // Route based on user role
-      if (authState.isAdmin) {
+      if (ref.read(authProvider.notifier).isAdmin) {
         return const AdminNavScreen();
       } else {
         return const CustomerNavScreen();
@@ -66,7 +66,7 @@ class AuthLoadingScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(75),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
+                        color: AppColors.primary.withValues(alpha: 0.3),
                         blurRadius: 30,
                         offset: const Offset(0, 15),
                       ),
@@ -108,7 +108,7 @@ class AuthLoadingScreen extends StatelessWidget {
                   'Checking authentication...',
                   style: AppTheme.elegantBodyStyle.copyWith(
                     fontSize: 16,
-                    color: AppColors.secondary.withOpacity(0.7),
+                    color: AppColors.secondary.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -142,7 +142,7 @@ class AuthGuard extends ConsumerWidget {
       return _buildAccessDeniedScreen(context, 'Please log in to continue');
     }
 
-    if (requireAdmin && !authState.isAdmin) {
+    if (requireAdmin && !ref.read(authProvider.notifier).isAdmin) {
       return _buildAccessDeniedScreen(context, 'Admin access required');
     }
 
@@ -176,11 +176,11 @@ class AuthGuard extends ConsumerWidget {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.1),
+                      color: AppColors.accent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(60),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.accent.withOpacity(0.2),
+                          color: AppColors.accent.withValues(alpha: 0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -210,7 +210,7 @@ class AuthGuard extends ConsumerWidget {
                     message,
                     style: AppTheme.elegantBodyStyle.copyWith(
                       fontSize: 16,
-                      color: AppColors.secondary.withOpacity(0.8),
+                      color: AppColors.secondary.withValues(alpha: 0.8),
                     ),
                     textAlign: TextAlign.center,
                   ),

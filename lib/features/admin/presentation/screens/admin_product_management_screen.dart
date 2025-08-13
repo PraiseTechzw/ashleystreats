@@ -5,7 +5,7 @@ import '../../../products/data/product_repository.dart';
 import '../../../products/data/models/product_isar.dart';
 
 class AdminProductManagementScreen extends StatefulWidget {
-  const AdminProductManagementScreen({Key? key}) : super(key: key);
+  const AdminProductManagementScreen({super.key});
 
   @override
   State<AdminProductManagementScreen> createState() =>
@@ -103,8 +103,7 @@ class _AdminProductManagementScreenState
 class _ProductFormDialog extends StatefulWidget {
   final ProductIsar? product;
   final Future<void> Function(ProductIsar) onSaved;
-  const _ProductFormDialog({Key? key, this.product, required this.onSaved})
-    : super(key: key);
+  const _ProductFormDialog({this.product, required this.onSaved});
 
   @override
   State<_ProductFormDialog> createState() => _ProductFormDialogState();

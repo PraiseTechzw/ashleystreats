@@ -12,12 +12,12 @@ class CustomToast extends StatelessWidget {
   final VoidCallback? onDismiss;
 
   const CustomToast({
-    Key? key,
+    super.key,
     required this.message,
     this.type = ToastType.success,
     this.duration = const Duration(seconds: 3),
     this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,13 +132,13 @@ class CustomToast extends StatelessWidget {
   Color _getBackgroundColor() {
     switch (type) {
       case ToastType.success:
-        return AppColors.primary.withOpacity(0.95);
+        return AppColors.primary.withValues(alpha: 0.95);
       case ToastType.error:
-        return AppColors.accent.withOpacity(0.95);
+        return AppColors.accent.withValues(alpha: 0.95);
       case ToastType.warning:
-        return Colors.orange.withOpacity(0.95);
+        return Colors.orange.withValues(alpha: 0.95);
       case ToastType.info:
-        return AppColors.secondary.withOpacity(0.95);
+        return AppColors.secondary.withValues(alpha: 0.95);
     }
   }
 

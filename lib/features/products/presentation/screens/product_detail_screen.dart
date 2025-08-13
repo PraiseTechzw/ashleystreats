@@ -3,8 +3,7 @@ import '../../data/models/product_isar.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductIsar product;
-  const ProductDetailScreen({Key? key, required this.product})
-    : super(key: key);
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {

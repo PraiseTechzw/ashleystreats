@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+vimport 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
@@ -13,12 +13,10 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
-        background: AppColors.background,
         error: AppColors.accent,
         onPrimary: AppColors.onPrimary,
         onSecondary: AppColors.onSecondary,
         onSurface: AppColors.secondary,
-        onBackground: AppColors.secondary,
         onError: AppColors.surface,
         brightness: Brightness.light,
       ),
@@ -121,7 +119,7 @@ class AppTheme {
         bodySmall: GoogleFonts.lora(
           fontSize: 12,
           fontWeight: FontWeight.normal,
-          color: AppColors.secondary.withOpacity(0.7),
+          color: AppColors.secondary.withValues(alpha: 0.7),
           fontStyle: FontStyle.italic,
         ),
 
@@ -141,7 +139,7 @@ class AppTheme {
         labelSmall: GoogleFonts.lora(
           fontSize: 10,
           fontWeight: FontWeight.w500,
-          color: AppColors.secondary.withOpacity(0.7),
+          color: AppColors.secondary.withValues(alpha: 0.7),
           fontStyle: FontStyle.italic,
         ),
       ),
@@ -157,7 +155,7 @@ class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -180,13 +178,13 @@ class AppTheme {
         labelStyle: GoogleFonts.lora(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: AppColors.secondary.withOpacity(0.7),
+          color: AppColors.secondary.withValues(alpha: 0.7),
           fontStyle: FontStyle.italic,
         ),
         hintStyle: GoogleFonts.lora(
           fontSize: 14,
           fontWeight: FontWeight.normal,
-          color: AppColors.secondary.withOpacity(0.5),
+          color: AppColors.secondary.withValues(alpha: 0.5),
           fontStyle: FontStyle.italic,
         ),
         errorStyle: GoogleFonts.lora(
@@ -203,7 +201,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
           elevation: 0,
-          shadowColor: AppColors.primary.withOpacity(0.3),
+          shadowColor: AppColors.primary.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -254,7 +252,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
-        shadowColor: AppColors.primary.withOpacity(0.1),
+        shadowColor: AppColors.primary.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
 
@@ -296,7 +294,7 @@ class AppTheme {
   static TextStyle get authSubtitleStyle => GoogleFonts.lora(
     fontSize: 16,
     fontWeight: FontWeight.normal,
-    color: AppColors.secondary.withOpacity(0.7),
+    color: AppColors.secondary.withValues(alpha: 0.7),
     height: 1.5,
     fontStyle: FontStyle.italic,
   );
